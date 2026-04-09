@@ -104,6 +104,30 @@ CREATE INDEX IF NOT EXISTS symbols_user_id_count_idx
   ON public.symbols (user_id, count DESC);
 
 
+-- ── increment_monthly_usage ─────────────────────────────────
+-- Called from /api/interpret after a successful interpretation.
+-- Increments the counter, resetting it if we've rolled into a new month.
+
+CREATE OR REPLACE FUNCTION public.increment_monthly_usage(uid UUID)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE public.profiles
+  SET
+    monthly_interpretation_count = CASE
+      WHEN monthly_count_reset_date < DATE_TRUNC('month', CURRENT_DATE)
+      THEN 1
+      ELSE monthly_interpretation_count + 1
+    END,
+    monthly_count_reset_date = CASE
+      WHEN monthly_count_reset_date < DATE_TRUNC('month', CURRENT_DATE)
+      THEN CURRENT_DATE
+      ELSE monthly_count_reset_date
+    END
+  WHERE id = uid;
+END;
+$$;
+
+
 -- ── Row Level Security ───────────────────────────────────────
 
 ALTER TABLE public.profiles         ENABLE ROW LEVEL SECURITY;
