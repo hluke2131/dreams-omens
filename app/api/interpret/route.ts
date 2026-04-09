@@ -1,0 +1,105 @@
+/**
+ * POST /api/interpret
+ *
+ * Server-side proxy for all OpenAI interpretation calls.
+ * The OpenAI API key is NEVER exposed to the client.
+ *
+ * For authenticated Reflect+ users this route also enforces no rate limit.
+ * For free users the client enforces the 3/month limit via localStorage;
+ * this route adds a soft server-side check for authenticated users.
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { getInterpretation } from '@/lib/openai'
+import { createClient } from '@/lib/supabase/server'
+import type { InterpretRequest, InterpretResponse } from '@/lib/types'
+import { FREE_MONTHLY_LIMIT } from '@/lib/types'
+
+export async function POST(req: NextRequest) {
+  // ── Parse & validate request body ────────────────────────────────────────
+  let body: InterpretRequest
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { type, text, tags, lens, concise } = body
+
+  if (!type || !['dream', 'omen'].includes(type)) {
+    return NextResponse.json({ error: 'type must be "dream" or "omen"' }, { status: 400 })
+  }
+
+  if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    return NextResponse.json({ error: 'text is required' }, { status: 400 })
+  }
+
+  if (text.length > 1200) {
+    return NextResponse.json({ error: 'text exceeds 1200 character limit' }, { status: 400 })
+  }
+
+  // ── Auth & subscription check ─────────────────────────────────────────────
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    // For authenticated users, enforce server-side monthly limit for free tier
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier, monthly_interpretation_count, monthly_count_reset_date')
+      .eq('id', user.id)
+      .single()
+
+    if (profile && profile.subscription_tier === 'free') {
+      // Reset counter if we're in a new month
+      const today = new Date().toISOString().split('T')[0].substring(0, 7) // YYYY-MM
+      const resetMonth = profile.monthly_count_reset_date.substring(0, 7)
+
+      let currentCount = profile.monthly_interpretation_count
+      if (today !== resetMonth) {
+        currentCount = 0
+        await supabase
+          .from('profiles')
+          .update({ monthly_interpretation_count: 0, monthly_count_reset_date: new Date().toISOString().split('T')[0] })
+          .eq('id', user.id)
+      }
+
+      if (currentCount >= FREE_MONTHLY_LIMIT) {
+        return NextResponse.json(
+          { error: 'Monthly interpretation limit reached. Upgrade to continue.' },
+          { status: 429 },
+        )
+      }
+    }
+  }
+
+  // ── Call OpenAI ───────────────────────────────────────────────────────────
+  try {
+    const result = await getInterpretation({ type, text, tags, lens, concise })
+
+    // Increment server-side counter for authenticated users on free tier
+    if (user) {
+      await supabase.rpc('increment_monthly_usage', { uid: user.id })
+    }
+
+    return NextResponse.json<InterpretResponse>({ result })
+  } catch (err) {
+    console.error('[/api/interpret] OpenAI error:', err)
+
+    const isTimeout =
+      err instanceof Error &&
+      (err.message.includes('timeout') || err.message.includes('ETIMEDOUT'))
+
+    if (isTimeout) {
+      return NextResponse.json(
+        { error: 'The interpretation is taking longer than expected. Please check your internet connection and try again.' },
+        { status: 504 },
+      )
+    }
+
+    return NextResponse.json(
+      { error: "We couldn't get an interpretation." },
+      { status: 500 },
+    )
+  }
+}

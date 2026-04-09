@@ -1,65 +1,68 @@
-import Image from "next/image";
+/**
+ * Home — Route: /
+ *
+ * Entry point: two cards for Dream and Omen interpretation.
+ * Stub — full UI implementation comes in the next session.
+ */
+import Link from 'next/link'
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
+      {/* Header */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+        <Link href="/history" style={{ color: 'var(--owl-brown)', fontSize: 24, textDecoration: 'none' }}>☰</Link>
+        <Link href="/settings" style={{ color: 'var(--owl-brown)', fontSize: 24, textDecoration: 'none' }}>⚙</Link>
+      </header>
+
+      {/* Brand lockup */}
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ fontSize: 64, marginBottom: 12 }}>🦉</div>
+        <h1 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 8 }}>
+          Dreams &amp; Omens
+        </h1>
+        <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
+          Anonymous and self-guided. Explore the symbols in your dreams and everyday life.
+        </p>
+      </div>
+
+      {/* Interpret cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+        <Link href="/compose/dream" style={{ textDecoration: 'none' }}>
+          <div className="card-primary" style={{ cursor: 'pointer' }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🌙</div>
+            <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 4 }}>
+              Interpret Dream
+            </h2>
+            <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>
+              Explore the symbols and meanings in your dreams
+            </p>
+          </div>
+        </Link>
+
+        <Link href="/compose/omen" style={{ textDecoration: 'none' }}>
+          <div className="card-primary" style={{ cursor: 'pointer' }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>👁</div>
+            <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 4 }}>
+              Interpret Omen
+            </h2>
+            <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>
+              Understand the signs and synchronicities around you
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Footer */}
+      <footer style={{ textAlign: 'center' }}>
+        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
+          There&apos;s meaning in the magic. We blend psychology, pattern-spotting, and timeless
+          symbolism—no fortune-telling.
+        </p>
+        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginTop: 8 }}>
+          © {new Date().getFullYear()} Dreams &amp; Omens
+        </p>
+      </footer>
+    </main>
+  )
 }

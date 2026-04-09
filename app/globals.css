@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
+/* ─── Dreams & Omens Design Tokens ─────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand palette */
+  --owl-brown: #5D4631;
+  --cedar:     #7C5F44;
+  --sage:      #8FA382;
+  --moss:      #5B6E4D;
+  --sand:      #E7D9C9;
+  --bone:      #F5F1EC;
+  --cream:     #F9F6F2;
+  --ink:       #1D1B16;
+
+  /* Semantic tokens */
+  --bg-primary:    var(--bone);
+  --bg-secondary:  var(--sand);
+  --text-primary:  var(--ink);
+  --text-secondary: rgba(29, 27, 22, 0.75);
+  --divider:       rgba(29, 27, 22, 0.08);
+  --stroke-soft:   rgba(29, 27, 22, 0.12);
+
+  /* Border radii */
+  --radius-s: 12px;
+  --radius-m: 18px;
+  --radius-l: 24px;
+
+  /* Spacing */
+  --space-xs:  6px;
+  --space-s:  10px;
+  --space-m:  16px;
+  --space-l:  20px;
+  --space-xl: 28px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(to bottom, var(--bone), var(--sand));
+  min-height: 100dvh;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* ─── Typography scale ──────────────────────────────────────────────────────── */
+
+.text-title-xl { font-size: 28px; font-weight: 600; line-height: 34px; }
+.text-title-l  { font-size: 22px; font-weight: 600; line-height: 28px; }
+.text-title-m  { font-size: 18px; font-weight: 600; line-height: 24px; }
+.text-body     { font-size: 16px; font-weight: 400; line-height: 22px; }
+.text-helper   { font-size: 13px; font-weight: 400; line-height: 18px; }
+.text-caption  { font-size: 11px; font-weight: 400; line-height: 16px; }
+
+/* ─── Card variants ─────────────────────────────────────────────────────────── */
+
+.card-primary {
+  background: var(--bone);
+  border-radius: var(--radius-l);
+  border: 1px solid var(--stroke-soft);
+  box-shadow: 0 12px 24px rgba(29, 27, 22, 0.10);
+  padding: var(--space-l);
+}
+
+.card-secondary {
+  background: var(--sand);
+  border-radius: var(--radius-l);
+  border: 1px solid var(--stroke-soft);
+  box-shadow: 0 12px 24px rgba(29, 27, 22, 0.10);
+  padding: var(--space-l);
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────────── */
+
+.btn-primary {
+  background: var(--sage);
+  color: white;
+  border-radius: var(--radius-m);
+  padding: 16px var(--space-xl);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 12px rgba(29, 27, 22, 0.08);
+  transition: opacity 0.15s ease;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) { opacity: 0.88; }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--cedar);
+  color: white;
+  border-radius: var(--radius-m);
+  padding: 16px var(--space-xl);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 12px rgba(29, 27, 22, 0.08);
+  transition: opacity 0.15s ease;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-secondary:hover:not(:disabled) { opacity: 0.88; }
