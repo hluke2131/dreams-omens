@@ -4,7 +4,7 @@ import CookieConsent from './components/CookieConsent'
 
 export const metadata: Metadata = {
   title:       'Dreams & Omens',
-  description: 'AI-powered dream and omen interpretation. Anonymous, self-guided, and grounded.',
+  description: 'Dream and omen interpretation. Anonymous, self-guided, and grounded.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
 }
 

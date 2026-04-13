@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PageFooter from '@/app/components/PageFooter'
 
 export const metadata = { title: 'Contact — Dreams & Omens' }
 
@@ -52,12 +53,7 @@ export default function ContactPage() {
       </div>
 
       <footer style={{ textAlign: 'center', marginTop: 40 }}>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 4 }}>
-          © 2026 - DreamsAndOmens.com - All Rights Reserved
-        </p>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
-          For entertainment purposes only. Not a substitute for professional advice.
-        </p>
+        <PageFooter />
       </footer>
 
     </main>

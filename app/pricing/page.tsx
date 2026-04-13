@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import PageFooter from '@/app/components/PageFooter'
 
 export const metadata = { title: 'Pricing — Dreams & Omens' }
 
 const FEATURES_FREE    = ['3 interpretations/month', 'Dream & omen interpretation', 'Perspective lenses (Archetypal, Cognitive, Cultural)', 'Local history on your device', 'No account required']
-const FEATURES_BASIC   = ['Everything in Free', 'Unlimited interpretations', 'No ads']
-const FEATURES_REFLECT = ['Everything in Basic', 'Cloud-saved history', 'AI symbol tracking & pattern dashboard', 'Concise answers mode', 'Subscriber-only PDF guides', 'Early access to new features']
+const FEATURES_BASIC   = ['Everything in Free', 'Unlimited interpretations', 'Perspective lenses on every reading']
+const FEATURES_REFLECT = ['Everything in Basic', 'Cloud-saved history', 'Symbol tracking & pattern dashboard', 'Concise answers mode', 'Subscriber-only PDF guides', 'Early access to new features']
 
 export default function PricingPage() {
   return (
@@ -136,12 +137,7 @@ export default function PricingPage() {
       </p>
 
       <footer style={{ textAlign: 'center' }}>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 4 }}>
-          © 2026 - DreamsAndOmens.com - All Rights Reserved
-        </p>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
-          For entertainment purposes only. Not a substitute for professional advice.
-        </p>
+        <PageFooter />
       </footer>
 
     </main>

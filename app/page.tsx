@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { hasOnboarded } from '@/lib/storage'
+import PageFooter from '@/app/components/PageFooter'
 
 export default function Home() {
   const router = useRouter()
@@ -72,33 +73,7 @@ export default function Home() {
           There&apos;s meaning in the magic. We blend psychology, pattern-spotting, and timeless
           symbolism—no fortune-telling.
         </p>
-
-        {/* Footer nav links */}
-        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '6px 16px', marginBottom: 14 }}>
-          {[
-            { href: '/about',   label: 'About'   },
-            { href: '/faq',     label: 'FAQ'     },
-            { href: '/pricing', label: 'Pricing' },
-            { href: '/privacy', label: 'Privacy' },
-            { href: '/terms',   label: 'Terms'   },
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-caption"
-              style={{ color: 'var(--cedar)', textDecoration: 'none' }}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-
-        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 4 }}>
-          © 2026 - DreamsAndOmens.com - All Rights Reserved
-        </p>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
-          For entertainment purposes only. Not a substitute for professional advice.
-        </p>
+        <PageFooter />
       </footer>
 
     </main>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PageFooter from '@/app/components/PageFooter'
 
 export const metadata = { title: '404 — Dreams & Omens' }
 
@@ -35,11 +36,9 @@ export default function NotFound() {
         <button className="btn-primary">Back to Home</button>
       </Link>
 
-      <div style={{ display: 'flex', gap: 20, marginTop: 28 }}>
-        <Link href="/faq"     className="text-helper" style={{ color: 'var(--cedar)', textDecoration: 'none' }}>FAQ</Link>
-        <Link href="/contact" className="text-helper" style={{ color: 'var(--cedar)', textDecoration: 'none' }}>Contact</Link>
-        <Link href="/pricing" className="text-helper" style={{ color: 'var(--cedar)', textDecoration: 'none' }}>Pricing</Link>
-      </div>
+      <footer style={{ textAlign: 'center', marginTop: 28 }}>
+        <PageFooter />
+      </footer>
     </main>
   )
 }
