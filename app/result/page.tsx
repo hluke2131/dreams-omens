@@ -20,7 +20,8 @@ export default function ResultPage() {
   const [lensError,   setLensError]   = useState<string | null>(null)
   const [copied,      setCopied]      = useState(false)
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerRef      = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timedOutRef   = useRef(false)
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get('id')
@@ -30,15 +31,23 @@ export default function ResultPage() {
     setInterp(found)
   }, [router])
 
+  // Clear any pending timer if the page unmounts mid-request
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
   async function handleLens(lens: LensType) {
     if (!interp || lensLoading) return
     setLensLoading(true)
     setLensError(null)
+    timedOutRef.current = false
 
-    // 9s UI timeout
-    let timedOut = false
+    // 9-second UI timeout — same pattern as ComposeClient
+    if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
-      timedOut = true
+      timedOutRef.current = true
       timerRef.current = null
       setLensLoading(false)
       setLensError(
@@ -53,7 +62,7 @@ export default function ResultPage() {
         body:    JSON.stringify({ type: interp.type, text: interp.input, tags: interp.tags, lens }),
       })
 
-      if (timedOut) return
+      if (timedOutRef.current) return
       if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
 
       const data = await res.json()
@@ -73,7 +82,7 @@ export default function ResultPage() {
 
       router.push(`/result?id=${id}`)
     } catch (err) {
-      if (timedOut) return
+      if (timedOutRef.current) return
       if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
       setLensLoading(false)
       setLensError(err instanceof Error ? err.message : "We couldn't get an interpretation.")

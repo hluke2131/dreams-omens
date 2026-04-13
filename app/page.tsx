@@ -18,6 +18,7 @@ export default function Home() {
       {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
+        <Link href="/pricing" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>Pricing</Link>
         <Link href="/settings" aria-label="Settings" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>⚙</Link>
       </header>
 
@@ -67,12 +68,36 @@ export default function Home() {
 
       {/* Footer */}
       <footer style={{ textAlign: 'center' }}>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
+        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 16 }}>
           There&apos;s meaning in the magic. We blend psychology, pattern-spotting, and timeless
           symbolism—no fortune-telling.
         </p>
-        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginTop: 8 }}>
-          © {new Date().getFullYear()} Dreams &amp; Omens
+
+        {/* Footer nav links */}
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '6px 16px', marginBottom: 14 }}>
+          {[
+            { href: '/about',   label: 'About'   },
+            { href: '/faq',     label: 'FAQ'     },
+            { href: '/pricing', label: 'Pricing' },
+            { href: '/privacy', label: 'Privacy' },
+            { href: '/terms',   label: 'Terms'   },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="text-caption"
+              style={{ color: 'var(--cedar)', textDecoration: 'none' }}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 4 }}>
+          © 2026 - DreamsAndOmens.com - All Rights Reserved
+        </p>
+        <p className="text-caption" style={{ color: 'var(--owl-brown)' }}>
+          For entertainment purposes only. Not a substitute for professional advice.
         </p>
       </footer>
 
