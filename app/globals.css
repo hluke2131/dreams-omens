@@ -110,3 +110,71 @@ body {
 }
 
 .btn-secondary:hover:not(:disabled) { opacity: 0.88; }
+
+/* ─── Form elements ─────────────────────────────────────────────────────────── */
+
+textarea::placeholder,
+input::placeholder {
+  font-style: italic;
+  color: var(--owl-brown);
+  opacity: 1;
+}
+
+textarea {
+  outline: none;
+}
+textarea:focus {
+  border-color: var(--cedar) !important;
+}
+
+/* ─── Tag chip ──────────────────────────────────────────────────────────────── */
+
+.tag-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-s);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--stroke-soft);
+  background: var(--sand);
+  color: var(--owl-brown);
+  font-family: inherit;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.tag-chip.selected {
+  background: var(--cedar);
+  color: white;
+  border-color: var(--cedar);
+}
+
+/* ─── Loading spinner ───────────────────────────────────────────────────────── */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--stroke-soft);
+  border-top-color: var(--sage);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ─── Lens button ───────────────────────────────────────────────────────────── */
+
+.btn-lens {
+  padding: 10px 16px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--stroke-soft);
+  background: var(--bone);
+  color: var(--cedar);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease;
+}
+.btn-lens:hover:not(:disabled) { background: var(--sand); }
+.btn-lens:disabled { opacity: 0.45; cursor: not-allowed; }

@@ -1,0 +1,267 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import type { InterpretationType, Interpretation } from '@/lib/types'
+import { FREE_MONTHLY_LIMIT, getMonthlyUsage, incrementMonthlyUsage } from '@/lib/types'
+import { saveInterpretation } from '@/lib/storage'
+
+const MAX_CHARS    = 1200
+const UI_TIMEOUT   = 9_000
+
+interface Props {
+  type:        InterpretationType
+  title:       string
+  icon:        string
+  placeholder: string
+  hint:        string
+  tags:        readonly string[]
+}
+
+export default function ComposeClient({ type, title, icon, placeholder, hint, tags }: Props) {
+  const router = useRouter()
+
+  const [text,         setText]        = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState<string | null>(null)
+  const [showGate,     setShowGate]     = useState(false)
+
+  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelledRef = useRef(false)   // true after 9s timeout fires
+
+  function toggleTag(tag: string) {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
+    )
+  }
+
+  async function handleSubmit() {
+    if (!text.trim() || loading) return
+
+    // Free-tier gate
+    if (getMonthlyUsage() >= FREE_MONTHLY_LIMIT) {
+      setShowGate(true)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    cancelledRef.current = false
+
+    // 9-second UI timeout
+    timerRef.current = setTimeout(() => {
+      cancelledRef.current = true
+      timerRef.current = null
+      setLoading(false)
+      setError(
+        'The interpretation is taking longer than expected. Please check your internet connection and try again.',
+      )
+    }, UI_TIMEOUT)
+
+    try {
+      const res = await fetch('/api/interpret', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ type, text: text.trim(), tags: selectedTags }),
+      })
+
+      // If the 9s timeout already fired, silently discard this result
+      if (cancelledRef.current) return
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "We couldn't get an interpretation.")
+      }
+
+      // Persist
+      const id: string = Date.now().toString()
+      const interp: Interpretation = {
+        id,
+        date:   new Date(),
+        type,
+        input:  text.trim(),
+        tags:   selectedTags,
+        lens:   'none',
+        result: data.result,
+      }
+      saveInterpretation(interp)
+      incrementMonthlyUsage()
+
+      router.push(`/result?id=${id}`)
+    } catch (err) {
+      if (cancelledRef.current) return
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+      setLoading(false)
+      setError(err instanceof Error ? err.message : "We couldn't get an interpretation.")
+    }
+  }
+
+  // ── Gate screen ─────────────────────────────────────────────────────────────
+  if (showGate) {
+    return (
+      <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
+        <div className="card-primary" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
+          <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 12 }}>
+            You&apos;ve used your 3 free interpretations this month
+          </h2>
+          <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 28 }}>
+            Upgrade to keep interpreting—and unlock cloud history, symbol tracking, and more.
+          </p>
+
+          <Link href="/pricing" style={{ display: 'block', marginBottom: 10, textDecoration: 'none' }}>
+            <button className="btn-secondary" style={{ textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}>
+              <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Basic</span>
+              <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
+                $0.99 first month, then $2.99/month
+              </span>
+            </button>
+          </Link>
+
+          <Link href="/pricing" style={{ display: 'block', marginBottom: 20, textDecoration: 'none' }}>
+            <button className="btn-primary" style={{ textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}>
+              <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Reflect+</span>
+              <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
+                $0.99 first month, then $4.99/month
+              </span>
+            </button>
+          </Link>
+
+          <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 20 }}>
+            Intro offer. Auto-renews at regular price after 30 days. Cancel anytime.
+          </p>
+
+          <button
+            className="btn-secondary"
+            style={{ background: 'transparent', color: 'var(--owl-brown)', boxShadow: 'none' }}
+            onClick={() => setShowGate(false)}
+          >
+            Maybe Later
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  // ── Compose form ─────────────────────────────────────────────────────────────
+  return (
+    <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
+
+      {/* Header */}
+      <header style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+        <Link
+          href="/"
+          aria-label="Back"
+          style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none', lineHeight: 1 }}
+        >
+          ←
+        </Link>
+        <h1 className="text-title-l" style={{ color: 'var(--ink)' }}>
+          {icon} {title}
+        </h1>
+      </header>
+
+      {/* Hint */}
+      <p className="text-helper" style={{ color: 'var(--text-secondary)', marginBottom: 10 }}>
+        {hint}
+      </p>
+
+      {/* Textarea */}
+      <div style={{ marginBottom: 16 }}>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value.slice(0, MAX_CHARS))}
+          placeholder={placeholder}
+          disabled={loading}
+          rows={6}
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            borderRadius: 'var(--radius-m)',
+            border: '1px solid var(--stroke-soft)',
+            background: 'var(--bone)',
+            color: 'var(--ink)',
+            fontSize: 16,
+            lineHeight: '22px',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+          }}
+        />
+        <p
+          className="text-caption"
+          style={{
+            textAlign: 'right',
+            marginTop: 4,
+            color: text.length > MAX_CHARS - 100 ? 'var(--cedar)' : 'var(--owl-brown)',
+          }}
+        >
+          {text.length}/{MAX_CHARS}
+        </p>
+      </div>
+
+      {/* Tag chips */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
+        {tags.map(tag => (
+          <button
+            key={tag}
+            onClick={() => toggleTag(tag)}
+            className={`tag-chip${selectedTags.includes(tag) ? ' selected' : ''}`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+
+      {/* Loading card */}
+      {loading && (
+        <div className="card-secondary" style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div className="spinner" style={{ margin: '0 auto 12px' }} />
+          <p className="text-body" style={{ color: 'var(--ink)', fontWeight: 600, marginBottom: 4 }}>
+            Working…
+          </p>
+          <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>
+            This usually takes a few seconds.
+          </p>
+        </div>
+      )}
+
+      {/* Error card */}
+      {error && !loading && (
+        <div className="card-secondary" style={{ marginBottom: 24 }}>
+          <p className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 8 }}>
+            We couldn&apos;t get an interpretation.
+          </p>
+          <p className="text-helper" style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+            {error}
+          </p>
+          <button className="btn-secondary" onClick={() => setError(null)}>
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Submit */}
+      {!loading && (
+        <button
+          className="btn-primary"
+          onClick={handleSubmit}
+          disabled={!text.trim()}
+        >
+          Interpret {type === 'dream' ? 'Dream' : 'Omen'}
+        </button>
+      )}
+    </main>
+  )
+}

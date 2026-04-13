@@ -1,18 +1,24 @@
-/**
- * Home — Route: /
- *
- * Entry point: two cards for Dream and Omen interpretation.
- * Stub — full UI implementation comes in the next session.
- */
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { hasOnboarded } from '@/lib/storage'
 
 export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!hasOnboarded()) router.replace('/onboarding')
+  }, [router])
+
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
+
       {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-        <Link href="/history" style={{ color: 'var(--owl-brown)', fontSize: 24, textDecoration: 'none' }}>☰</Link>
-        <Link href="/settings" style={{ color: 'var(--owl-brown)', fontSize: 24, textDecoration: 'none' }}>⚙</Link>
+        <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
+        <Link href="/settings" aria-label="Settings" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>⚙</Link>
       </header>
 
       {/* Brand lockup */}
@@ -27,10 +33,13 @@ export default function Home() {
       </div>
 
       {/* Interpret cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
         <Link href="/compose/dream" style={{ textDecoration: 'none' }}>
-          <div className="card-primary" style={{ cursor: 'pointer' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🌙</div>
+          <div
+            className="card-primary"
+            style={{ cursor: 'pointer', transition: 'opacity 0.15s ease' }}
+          >
+            <div style={{ fontSize: 36, marginBottom: 10 }}>🌙</div>
             <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 4 }}>
               Interpret Dream
             </h2>
@@ -41,8 +50,11 @@ export default function Home() {
         </Link>
 
         <Link href="/compose/omen" style={{ textDecoration: 'none' }}>
-          <div className="card-primary" style={{ cursor: 'pointer' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>👁</div>
+          <div
+            className="card-primary"
+            style={{ cursor: 'pointer', transition: 'opacity 0.15s ease' }}
+          >
+            <div style={{ fontSize: 36, marginBottom: 10 }}>👁</div>
             <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 4 }}>
               Interpret Omen
             </h2>
@@ -63,6 +75,7 @@ export default function Home() {
           © {new Date().getFullYear()} Dreams &amp; Omens
         </p>
       </footer>
+
     </main>
   )
 }
