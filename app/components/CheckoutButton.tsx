@@ -22,6 +22,12 @@ interface Props {
   priceKey: PriceKey
   /** Where to send the user after sign-in if not logged in. Defaults to /paywall */
   returnPath?: string
+  /**
+   * 'gate' — checkout initiated from the 3/month upsell gate.
+   *   Triggers the first-month $0.99 discount coupon server-side.
+   * Omit for standard full-price checkout.
+   */
+  source?: 'gate'
   className?: string
   style?: React.CSSProperties
   children: React.ReactNode
@@ -30,6 +36,7 @@ interface Props {
 export default function CheckoutButton({
   priceKey,
   returnPath = '/paywall',
+  source,
   className,
   style,
   children,
@@ -57,7 +64,7 @@ export default function CheckoutButton({
       const res = await fetch('/api/stripe/create-checkout', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ priceKey }),
+        body:    JSON.stringify({ priceKey, source }),
       })
       const data = await res.json()
 

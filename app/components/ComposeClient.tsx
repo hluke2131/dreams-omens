@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { InterpretationType, Interpretation } from '@/lib/types'
 import { FREE_MONTHLY_LIMIT, getMonthlyUsage, incrementMonthlyUsage } from '@/lib/types'
 import { saveInterpretation } from '@/lib/storage'
+import CheckoutButton from '@/app/components/CheckoutButton'
 
 const MAX_CHARS    = 1200
 const UI_TIMEOUT   = 9_000
@@ -120,23 +121,31 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
             Upgrade to keep interpreting—and unlock cloud history, symbol tracking, and more.
           </p>
 
-          <Link href="/pricing" style={{ display: 'block', marginBottom: 10, textDecoration: 'none' }}>
-            <button className="btn-secondary" style={{ textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}>
-              <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Basic</span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
-                $0.99 first month, then $2.99/month
-              </span>
-            </button>
-          </Link>
+          <CheckoutButton
+            priceKey="basic_monthly"
+            source="gate"
+            returnPath="/compose/dream"
+            className="btn-secondary"
+            style={{ marginBottom: 10, textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}
+          >
+            <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Basic</span>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
+              $0.99 first month, then $2.99/month
+            </span>
+          </CheckoutButton>
 
-          <Link href="/pricing" style={{ display: 'block', marginBottom: 20, textDecoration: 'none' }}>
-            <button className="btn-primary" style={{ textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}>
-              <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Reflect+</span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
-                $0.99 first month, then $4.99/month
-              </span>
-            </button>
-          </Link>
+          <CheckoutButton
+            priceKey="reflect_plus_monthly"
+            source="gate"
+            returnPath="/compose/dream"
+            className="btn-primary"
+            style={{ marginBottom: 20, textAlign: 'left', paddingTop: 14, paddingBottom: 14 }}
+          >
+            <span style={{ display: 'block', fontWeight: 700 }}>Upgrade to Reflect+</span>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 400, opacity: 0.85, marginTop: 2 }}>
+              $0.99 first month, then $4.99/month
+            </span>
+          </CheckoutButton>
 
           <p className="text-caption" style={{ color: 'var(--owl-brown)', marginBottom: 20 }}>
             Intro offer. Auto-renews at regular price after 30 days. Cancel anytime.

@@ -4,20 +4,25 @@
  * Creates a Stripe Checkout Session for the given price key.
  * Requires the user to be authenticated.
  *
- * Body: { priceKey: 'basic_monthly' | 'reflect_plus_monthly' }
+ * Body: { priceKey: 'basic_monthly' | 'reflect_plus_monthly', source?: 'gate' }
  *
- * Intro offer: applies a repeating coupon (2 months at $0.99) automatically
- * when STRIPE_COUPON_INTRO_BASIC / STRIPE_COUPON_INTRO_REFLECT_PLUS are set.
+ * Discount logic:
+ *   source = 'gate'  → first-month $0.99 offer, applied server-side via
+ *                       STRIPE_COUPON_GATE_BASIC / STRIPE_COUPON_GATE_REFLECT_PLUS
+ *   source = omitted → full price, no server-side coupon
+ *
+ * The Stripe Checkout promotion-code field is always enabled, so customers
+ * can enter the DREAMS2 promo code (email popup offer) on any checkout.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, PRICE_IDS, type PriceKey } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 
-// Map from priceKey to the env var holding that plan's intro coupon ID
-const INTRO_COUPON_IDS: Record<PriceKey, string | undefined> = {
-  basic_monthly:        process.env.STRIPE_COUPON_INTRO_BASIC          || undefined,
-  reflect_plus_monthly: process.env.STRIPE_COUPON_INTRO_REFLECT_PLUS   || undefined,
+// Gate-screen first-month discount coupons (server-applied, not customer-entered)
+const GATE_COUPON_IDS: Record<PriceKey, string | undefined> = {
+  basic_monthly:        process.env.STRIPE_COUPON_GATE_BASIC          || undefined,
+  reflect_plus_monthly: process.env.STRIPE_COUPON_GATE_REFLECT_PLUS   || undefined,
 }
 
 export async function POST(req: NextRequest) {
@@ -29,9 +34,11 @@ export async function POST(req: NextRequest) {
   }
 
   let priceKey: PriceKey
+  let source: string | undefined
   try {
     const body = await req.json()
     priceKey = body.priceKey
+    source   = body.source
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
@@ -72,15 +79,19 @@ export async function POST(req: NextRequest) {
 
   const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  // Apply intro coupon if configured
-  const couponId   = INTRO_COUPON_IDS[priceKey]
-  const discounts  = couponId ? [{ coupon: couponId }] : undefined
+  // Gate-screen checkout: apply server-side first-month coupon
+  const gateCouponId = source === 'gate' ? GATE_COUPON_IDS[priceKey] : undefined
+  const discounts    = gateCouponId ? [{ coupon: gateCouponId }] : undefined
 
   const session = await stripe.checkout.sessions.create({
-    customer:    customerId,
-    mode:        'subscription',
-    line_items:  [{ price: priceId, quantity: 1 }],
+    customer:              customerId,
+    mode:                  'subscription',
+    line_items:            [{ price: priceId, quantity: 1 }],
     ...(discounts ? { discounts } : {}),
+    // Allow customers to enter promo codes (e.g. DREAMS2 from email popup)
+    // Note: allow_promotion_codes cannot be set when discounts is also set,
+    // so it only activates on standard and DREAMS2 flows (not gate).
+    ...(discounts ? {} : { allow_promotion_codes: true }),
     success_url: `${origin}/account?checkout=success`,
     cancel_url:  `${origin}/paywall`,
     metadata:    { supabase_user_id: user.id, price_key: priceKey },
