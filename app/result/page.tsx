@@ -124,11 +124,14 @@ export default function ResultPage() {
       saveInterpretation(newInterp)
 
       // Cloud save for Reflect+ (fire-and-forget)
+      // keepalive: true keeps the request alive through the router.push() that follows.
+      console.log('[result] isReflectPlus:', isReflectPlus, '— attempting cloud save for lens id:', id)
       if (isReflectPlus) {
         fetch('/api/save-interpretation', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({
+          method:    'POST',
+          headers:   { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body:      JSON.stringify({
             id,
             type:   interp.type,
             input:  interp.input,
@@ -136,7 +139,12 @@ export default function ResultPage() {
             lens,
             result: data.result,
           }),
-        }).catch(() => {})
+        })
+          .then(r => {
+            if (!r.ok) console.error('[result] save-interpretation responded with status', r.status)
+            else console.log('[result] cloud save succeeded for lens id:', id)
+          })
+          .catch(err => console.error('[result] save-interpretation fetch error:', err))
       }
 
       router.push(`/result?id=${id}`)

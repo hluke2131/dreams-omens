@@ -23,13 +23,18 @@ interface SaveRequest {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('[save-interpretation] Request received')
+
   // ── Auth & Reflect+ check ────────────────────────────────────────────────
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    console.warn('[save-interpretation] Rejected: no authenticated user')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  console.log('[save-interpretation] Authenticated user:', user.id)
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -37,11 +42,14 @@ export async function POST(req: NextRequest) {
     .eq('id', user.id)
     .single()
 
+  console.log('[save-interpretation] Profile:', profile?.subscription_tier, profile?.subscription_status)
+
   const isReflectPlus =
     profile?.subscription_status === 'active' &&
     profile?.subscription_tier === 'reflect_plus'
 
   if (!isReflectPlus) {
+    console.warn('[save-interpretation] Rejected: not Reflect+ (tier:', profile?.subscription_tier, 'status:', profile?.subscription_status, ')')
     return NextResponse.json({ error: 'Reflect+ subscription required' }, { status: 403 })
   }
 
@@ -56,8 +64,11 @@ export async function POST(req: NextRequest) {
   const { id, type, input, tags, lens, result } = body
 
   if (!id || !type || !input || !result) {
+    console.warn('[save-interpretation] Rejected: missing fields — id:', !!id, 'type:', !!type, 'input:', !!input, 'result:', !!result)
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
+
+  console.log('[save-interpretation] Saving id:', id, 'type:', type)
 
   // ── Upsert interpretation (idempotent on re-save) ────────────────────────
   const { error: insertError } = await supabase
@@ -76,6 +87,8 @@ export async function POST(req: NextRequest) {
     console.error('[save-interpretation] insert error:', insertError)
     return NextResponse.json({ error: 'Failed to save interpretation' }, { status: 500 })
   }
+
+  console.log('[save-interpretation] Upsert succeeded for id:', id)
 
   // ── Symbol extraction ────────────────────────────────────────────────────
   // Fire-and-forget: we don't block the response on symbol extraction.
