@@ -31,8 +31,9 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
   const [showGate,         setShowGate]         = useState(false)
   // null = still checking, true = paid subscriber (skip gate), false = free/logged-out
   const [isPaidSubscriber, setIsPaidSubscriber] = useState<boolean | null>(null)
-  const [isReflectPlus,    setIsReflectPlus]    = useState(false)
-  const [conciseMode,      setConciseMode]      = useState(false)
+  const [isReflectPlus,      setIsReflectPlus]      = useState(false)
+  const [conciseMode,        setConciseMode]        = useState(false)   // global default from user_settings
+  const [conciseThisOne,     setConciseThisOne]     = useState(false)   // per-interpretation override
 
   const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
   const cancelledRef = useRef(false)   // true after 9s timeout fires
@@ -70,9 +71,9 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
         profile?.subscription_tier === 'reflect_plus',
       )
 
-      if (settingsRes.data?.concise_answers) {
-        setConciseMode(true)
-      }
+      const globalConcise = settingsRes.data?.concise_answers ?? false
+      setConciseMode(globalConcise)
+      setConciseThisOne(globalConcise)   // per-interpretation starts at the global default
     })
   }, [])
 
@@ -115,7 +116,7 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
           type,
           text:    text.trim(),
           tags:    selectedTags,
-          concise: isReflectPlus && conciseMode ? true : undefined,
+          concise: isReflectPlus && conciseThisOne ? true : undefined,
         }),
       })
 
@@ -308,6 +309,62 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
           </button>
         ))}
       </div>
+
+      {/* Concise toggle — Reflect+ only */}
+      {isReflectPlus && (
+        <div
+          style={{
+            display:      'flex',
+            alignItems:   'center',
+            justifyContent: 'space-between',
+            gap:          12,
+            marginBottom: 24,
+            padding:      '10px 14px',
+            borderRadius: 'var(--radius-s)',
+            background:   'var(--sand)',
+            border:       '1px solid var(--stroke-soft)',
+          }}
+        >
+          <div>
+            <p className="text-helper" style={{ color: 'var(--ink)', fontWeight: 600, marginBottom: 1 }}>
+              Concise answer
+            </p>
+            <p className="text-caption" style={{ color: 'var(--text-secondary)' }}>
+              Get a shorter interpretation for this one
+            </p>
+          </div>
+          <button
+            onClick={() => setConciseThisOne(v => !v)}
+            disabled={loading}
+            aria-label="Toggle concise answer"
+            style={{
+              width:        44,
+              height:       26,
+              borderRadius: 13,
+              border:       'none',
+              background:   conciseThisOne ? 'var(--sage)' : 'var(--stroke-soft)',
+              cursor:       loading ? 'not-allowed' : 'pointer',
+              position:     'relative',
+              transition:   'background 0.2s ease',
+              flexShrink:   0,
+            }}
+          >
+            <span
+              style={{
+                position:     'absolute',
+                top:          3,
+                left:         conciseThisOne ? 21 : 3,
+                width:        20,
+                height:       20,
+                borderRadius: '50%',
+                background:   'white',
+                boxShadow:    '0 1px 3px rgba(0,0,0,0.2)',
+                transition:   'left 0.2s ease',
+              }}
+            />
+          </button>
+        </div>
+      )}
 
       {/* Loading card */}
       {loading && (

@@ -198,14 +198,14 @@ export default function SettingsPage() {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                 <p className="text-helper" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-                  Concise answers
+                  Always give concise answers
                 </p>
                 {!isReflectPlus && (
                   <span style={{ fontSize: 13 }} title="Reflect+ only">🔒</span>
                 )}
               </div>
-              <p className="text-caption" style={{ color: 'var(--text-secondary)' }}>
-                Get shorter, more focused interpretations
+              <p className="text-caption" style={{ color: 'var(--text-secondary)', lineHeight: '16px' }}>
+                When enabled, all your interpretations will default to shorter responses. You can still override this per interpretation on the compose screen.
               </p>
             </div>
             {isReflectPlus ? (
