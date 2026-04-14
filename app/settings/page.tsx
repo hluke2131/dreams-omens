@@ -48,7 +48,7 @@ export default function SettingsPage() {
           .from('user_settings')
           .select('concise_answers')
           .eq('user_id', data.user.id)
-          .single(),
+          .maybeSingle(),
       ])
 
       setProfile(profileRes.data ?? null)

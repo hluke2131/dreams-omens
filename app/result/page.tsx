@@ -51,7 +51,7 @@ export default function ResultPage() {
           .from('user_settings')
           .select('concise_answers')
           .eq('user_id', data.user.id)
-          .single(),
+          .maybeSingle(),
       ])
 
       const profile = profileRes.data
