@@ -3,9 +3,9 @@ import PageFooter from '@/app/components/PageFooter'
 
 export const metadata = { title: 'Pricing — Dreams & Omens' }
 
-const FEATURES_FREE    = ['3 interpretations/month', 'Dream & omen interpretation', 'Perspective lenses (Archetypal, Cognitive, Cultural)', 'Local history on your device', 'No account required']
-const FEATURES_BASIC   = ['Everything in Free', 'Unlimited interpretations', 'Perspective lenses on every reading']
-const FEATURES_REFLECT = ['Everything in Basic', 'Cloud-saved history', 'Symbol tracking & pattern dashboard', 'Concise answers mode', 'Subscriber-only PDF guides', 'Early access to new features']
+const FEATURES_FREE    = ['3 interpretations/month', 'Dream & omen interpretation', 'Perspective lenses (Archetypal, Cognitive, Cultural)', 'Local history on your device', 'No account or sign-up required']
+const FEATURES_BASIC   = ['Unlimited interpretations', 'Dream & omen interpretation', 'Perspective lenses on every reading', 'No monthly limit']
+const FEATURES_REFLECT = ['Everything in Basic', 'Cloud-saved history across devices', 'Symbol tracking & pattern dashboard', 'Concise answers mode', 'Subscriber-only PDF guides', 'Early access to new features']
 
 export default function PricingPage() {
   return (
@@ -35,7 +35,7 @@ export default function PricingPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <div>
               <h2 className="text-title-m" style={{ color: 'var(--ink)' }}>Free</h2>
-              <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>No credit card needed</p>
+              <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>No account needed</p>
             </div>
             <span className="text-title-l" style={{ color: 'var(--ink)' }}>$0</span>
           </div>

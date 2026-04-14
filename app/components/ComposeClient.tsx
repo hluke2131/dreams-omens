@@ -144,11 +144,20 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
 
           <button
             className="btn-secondary"
-            style={{ background: 'transparent', color: 'var(--owl-brown)', boxShadow: 'none' }}
+            style={{ background: 'transparent', color: 'var(--owl-brown)', boxShadow: 'none', marginBottom: 20 }}
             onClick={() => setShowGate(false)}
           >
             Maybe Later
           </button>
+
+          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 16 }}>
+            <p className="text-helper" style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>
+              Already a subscriber?{' '}
+              <Link href="/auth/sign-in" style={{ color: 'var(--cedar)', fontWeight: 600 }}>
+                Sign in to restore access.
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
     )

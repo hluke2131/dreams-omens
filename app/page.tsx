@@ -1,17 +1,28 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { hasOnboarded } from '@/lib/storage'
+import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
 
 export default function Home() {
   const router = useRouter()
+  const [userInitial, setUserInitial] = useState<string | null>(null)
 
   useEffect(() => {
     if (!hasOnboarded()) router.replace('/onboarding')
   }, [router])
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setUserInitial(data.user.email[0].toUpperCase())
+      }
+    })
+  }, [])
 
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
@@ -20,7 +31,33 @@ export default function Home() {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
         <Link href="/pricing" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>Pricing</Link>
-        <Link href="/settings" aria-label="Settings" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>⚙</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {userInitial ? (
+            <Link
+              href="/account"
+              aria-label="My Account"
+              style={{ textDecoration: 'none' }}
+            >
+              <div
+                style={{
+                  width:          30,
+                  height:         30,
+                  borderRadius:   '50%',
+                  background:     'var(--cedar)',
+                  color:          'white',
+                  display:        'flex',
+                  alignItems:     'center',
+                  justifyContent: 'center',
+                  fontSize:       13,
+                  fontWeight:     700,
+                }}
+              >
+                {userInitial}
+              </div>
+            </Link>
+          ) : null}
+          <Link href="/settings" aria-label="Settings" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>⚙</Link>
+        </div>
       </header>
 
       {/* Brand lockup */}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Interpretation, LensType } from '@/lib/types'
 import { getInterpretationById, saveInterpretation } from '@/lib/storage'
+import EmailCapturePopup from '@/app/components/EmailCapturePopup'
 
 const LENSES: { label: string; value: LensType }[] = [
   { label: 'Archetypal', value: 'archetypal' },
@@ -220,6 +221,9 @@ export default function ResultPage() {
       <Link href="/" style={{ textDecoration: 'none' }}>
         <button className="btn-secondary">New Interpretation</button>
       </Link>
+
+      {/* Email capture — shown once per device after first interpretation */}
+      <EmailCapturePopup />
 
     </main>
   )

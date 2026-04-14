@@ -27,15 +27,15 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'Is my data private?',
-    a: 'Yes. Free-tier interpretations are processed in real time and nothing is saved on our servers once your reading is delivered. Your interpretation history lives only on your own device. If you create an account, your cloud history is stored securely and is never sold or shared with third parties. See our Privacy Policy for full details.',
+    a: 'Yes. Interpretations are processed in real time and nothing is saved on our servers once your reading is delivered. Your interpretation history lives only on your own device unless you subscribe to Reflect+, which adds optional cloud-saved history. Your data is never sold or shared with third parties. See our Privacy Policy for full details.',
   },
   {
     q: 'Do I need an account?',
-    a: 'No. You can start interpreting right now, completely anonymously. Your history is saved automatically on your device. An account is only needed if you want history saved across devices or access to Reflect+ features.',
+    a: 'No. You can start interpreting right now, completely anonymously—no account needed. You get 3 free interpretations per month with no sign-up required. An account is only created when you subscribe to Basic or Reflect+.',
   },
   {
     q: 'What does a paid subscription include?',
-    a: 'Basic ($2.99/month) removes the monthly interpretation limit and unlocks perspective lenses on every reading. Reflect+ ($4.99/month) includes everything in Basic, plus cloud-saved history across devices, symbol tracking that spots recurring themes over time, a concise answers mode for shorter readings, subscriber-only guides, and early access to new features. Both plans start at $0.99 for your first month.',
+    a: 'Basic ($2.99/month) removes the monthly interpretation limit and gives you unlimited readings. Reflect+ ($4.99/month) includes everything in Basic, plus cloud-saved history across devices, symbol tracking that spots recurring themes over time, a concise answers mode for shorter readings, subscriber-only guides, and early access to new features.',
   },
   {
     q: 'How do I cancel my subscription?',
