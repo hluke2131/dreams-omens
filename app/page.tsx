@@ -9,7 +9,9 @@ import PageFooter from '@/app/components/PageFooter'
 
 export default function Home() {
   const router = useRouter()
-  const [userInitial, setUserInitial] = useState<string | null>(null)
+  const [userInitial,  setUserInitial]  = useState<string | null>(null)
+  // true until we confirm the user is an active paid subscriber
+  const [showPricing,  setShowPricing]  = useState(true)
 
   useEffect(() => {
     if (!hasOnboarded()) router.replace('/onboarding')
@@ -17,10 +19,21 @@ export default function Home() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) {
-        setUserInitial(data.user.email[0].toUpperCase())
-      }
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user?.email) return
+      setUserInitial(data.user.email[0].toUpperCase())
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier, subscription_status')
+        .eq('id', data.user.id)
+        .single()
+
+      const isPaid =
+        profile?.subscription_status === 'active' &&
+        (profile?.subscription_tier === 'basic' || profile?.subscription_tier === 'reflect_plus')
+
+      if (isPaid) setShowPricing(false)
     })
   }, [])
 
@@ -30,7 +43,9 @@ export default function Home() {
       {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
-        <Link href="/pricing" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>Pricing</Link>
+        {showPricing && (
+          <Link href="/pricing" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>Pricing</Link>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {userInitial ? (
             <Link
