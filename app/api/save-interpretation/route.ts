@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json()
   } catch {
+    console.warn('[save-interpretation] Rejected: invalid JSON body')
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
@@ -84,18 +85,22 @@ export async function POST(req: NextRequest) {
     })
 
   if (insertError) {
-    console.error('[save-interpretation] insert error:', insertError)
+    console.error('[save-interpretation] Upsert error:', insertError)
     return NextResponse.json({ error: 'Failed to save interpretation' }, { status: 500 })
   }
 
   console.log('[save-interpretation] Upsert succeeded for id:', id)
 
   // ── Symbol extraction ────────────────────────────────────────────────────
-  // Fire-and-forget: we don't block the response on symbol extraction.
-  // Errors here are logged but don't fail the save.
-  extractAndSaveSymbols(user.id, id, result).catch(err =>
-    console.error('[save-interpretation] symbol extraction error:', err),
-  )
+  // IMPORTANT: must be awaited before returning — Vercel terminates the
+  // serverless function execution context the moment the response is sent,
+  // killing any fire-and-forget work that hasn't completed yet.
+  try {
+    await extractAndSaveSymbols(user.id, id, result)
+  } catch (err) {
+    // Log but don't fail the response — the interpretation save already succeeded.
+    console.error('[save-interpretation] Symbol extraction threw unexpectedly:', err)
+  }
 
   return NextResponse.json({ success: true })
 }
@@ -105,69 +110,102 @@ async function extractAndSaveSymbols(
   interpretationId: string,
   resultText:       string,
 ): Promise<void> {
+  console.log('[save-interpretation] Starting symbol extraction for id:', interpretationId)
+
   const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) return
-
-  const openai = new OpenAI({ apiKey })
-
-  const response = await openai.chat.completions.create({
-    model:       'gpt-4o-mini',
-    temperature: 0,
-    max_tokens:  100,
-    messages: [
-      {
-        role:    'system',
-        content: 'You are a symbol extraction tool. From the following dream/omen interpretation, extract 1-5 key symbols (single words or short phrases like \'water\', \'falling\', \'teeth\', \'black cat\'). Return ONLY a JSON array of strings. No explanation, no markdown, just the array.',
-      },
-      {
-        role:    'user',
-        content: resultText,
-      },
-    ],
-  })
-
-  const raw = response.choices[0]?.message?.content?.trim() ?? '[]'
-
-  let symbols: string[]
-  try {
-    symbols = JSON.parse(raw)
-    if (!Array.isArray(symbols)) return
-    symbols = symbols
-      .filter(s => typeof s === 'string' && s.trim().length > 0)
-      .map(s => s.trim().toLowerCase())
-      .slice(0, 5)
-  } catch {
+  if (!apiKey) {
+    console.error('[save-interpretation] Symbol extraction skipped: OPENAI_API_KEY not set')
     return
   }
 
-  if (symbols.length === 0) return
+  // ── Call OpenAI to extract symbols ───────────────────────────────────────
+  let raw: string
+  try {
+    const openai   = new OpenAI({ apiKey })
+    const response = await openai.chat.completions.create({
+      model:       'gpt-4o-mini',
+      temperature: 0,
+      max_tokens:  100,
+      messages: [
+        {
+          role:    'system',
+          content: "You are a symbol extraction tool. From the following dream/omen interpretation, extract 1-5 key symbols (single words or short phrases like 'water', 'falling', 'teeth', 'black cat'). Return ONLY a JSON array of strings. No explanation, no markdown, just the array.",
+        },
+        {
+          role:    'user',
+          content: resultText,
+        },
+      ],
+    })
+    raw = response.choices[0]?.message?.content?.trim() ?? '[]'
+    console.log('[save-interpretation] OpenAI raw symbol response:', raw)
+  } catch (err) {
+    console.error('[save-interpretation] OpenAI symbol extraction call failed:', err)
+    return
+  }
 
-  // Use Supabase admin to bypass RLS for upsert
+  // ── Parse the JSON array ─────────────────────────────────────────────────
+  let symbols: string[]
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      console.warn('[save-interpretation] Symbol response was not an array:', raw)
+      return
+    }
+    symbols = parsed
+      .filter((s: unknown) => typeof s === 'string' && (s as string).trim().length > 0)
+      .map((s: string) => s.trim().toLowerCase())
+      .slice(0, 5)
+  } catch {
+    console.error('[save-interpretation] Failed to parse symbol JSON:', raw)
+    return
+  }
+
+  if (symbols.length === 0) {
+    console.warn('[save-interpretation] No usable symbols extracted from response:', raw)
+    return
+  }
+
+  console.log('[save-interpretation] Extracted symbols:', symbols)
+
+  // ── Upsert symbols (admin client bypasses RLS) ───────────────────────────
   const admin = createAdminClient()
 
   for (const symbol of symbols) {
-    // Try to increment if exists, otherwise insert
-    const { data: existing } = await admin
+    console.log('[save-interpretation] Upserting symbol:', symbol)
+
+    const { data: existing, error: selectErr } = await admin
       .from('symbols')
       .select('id, count, interpretation_ids')
       .eq('user_id', userId)
       .eq('name', symbol)
       .single()
 
+    if (selectErr && selectErr.code !== 'PGRST116') {
+      // PGRST116 = "no rows returned" — not an error, means it's a new symbol
+      console.error('[save-interpretation] Symbol select error for', symbol, ':', selectErr)
+      continue
+    }
+
     if (existing) {
       const ids = existing.interpretation_ids ?? []
-      if (!ids.includes(interpretationId)) {
-        await admin
-          .from('symbols')
-          .update({
-            count:              existing.count + 1,
-            last_seen_at:       new Date().toISOString(),
-            interpretation_ids: [...ids, interpretationId],
-          })
-          .eq('id', existing.id)
+      if (ids.includes(interpretationId)) {
+        console.log('[save-interpretation] Symbol', symbol, 'already linked to this interpretation — skipping')
+        continue
       }
+      const { error: updateErr } = await admin
+        .from('symbols')
+        .update({
+          count:              existing.count + 1,
+          last_seen_at:       new Date().toISOString(),
+          interpretation_ids: [...ids, interpretationId],
+        })
+        .eq('id', existing.id)
+
+      if (updateErr) console.error('[save-interpretation] Symbol update error for', symbol, ':', updateErr)
+      else console.log('[save-interpretation] Symbol', symbol, 'incremented to count', existing.count + 1)
     } else {
-      await admin
+      const { error: insertErr } = await admin
         .from('symbols')
         .insert({
           user_id:            userId,
@@ -176,6 +214,11 @@ async function extractAndSaveSymbols(
           last_seen_at:       new Date().toISOString(),
           interpretation_ids: [interpretationId],
         })
+
+      if (insertErr) console.error('[save-interpretation] Symbol insert error for', symbol, ':', insertErr)
+      else console.log('[save-interpretation] Symbol', symbol, 'inserted with count 1')
     }
   }
+
+  console.log('[save-interpretation] Symbol extraction complete for id:', interpretationId)
 }
