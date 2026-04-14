@@ -13,9 +13,11 @@ export default function EmailCapturePopup() {
   const [success, setSuccess]   = useState(false)
 
   useEffect(() => {
-    // Only show if not already dismissed/submitted on this device
+    // Only show if not already dismissed/submitted on this device.
+    // Delay 2.5s so the user can start reading their interpretation first.
     if (!localStorage.getItem(POPUP_SEEN_KEY)) {
-      setVisible(true)
+      const timer = setTimeout(() => setVisible(true), 2500)
+      return () => clearTimeout(timer)
     }
   }, [])
 
@@ -70,16 +72,16 @@ export default function EmailCapturePopup() {
         aria-label="Special offer"
         style={{
           position:     'fixed',
-          bottom:       0,
+          top:          '50%',
           left:         '50%',
-          transform:    'translateX(-50%)',
-          width:        '100%',
-          maxWidth:     480,
+          transform:    'translate(-50%, -50%)',
+          width:        'calc(100% - 40px)',
+          maxWidth:     460,
           background:   'var(--bone)',
-          borderRadius: 'var(--radius-l) var(--radius-l) 0 0',
-          padding:      '28px 24px 36px',
+          borderRadius: 'var(--radius-l)',
+          padding:      '32px 24px 28px',
           zIndex:       910,
-          boxShadow:    '0 -8px 40px rgba(29, 27, 22, 0.18)',
+          boxShadow:    '0 20px 60px rgba(29, 27, 22, 0.22)',
         }}
       >
         {success ? (
@@ -125,7 +127,7 @@ export default function EmailCapturePopup() {
                 Unlock 2 months for $0.99 each
               </h2>
               <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 4 }}>
-                Enter your email to claim an exclusive coupon code—plus a free dream guide to keep.
+                Most people Google what their dreams mean. You just discovered something far more personal. Enter your email and we&apos;ll send you an exclusive discount, plus a free guide to the symbols that show up most in people&apos;s dreams.
               </p>
             </div>
 
