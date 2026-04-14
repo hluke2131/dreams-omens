@@ -62,6 +62,8 @@ export interface SymbolRow {
   last_seen_at:       string
   interpretation_ids: string[]
   created_at:         string
+  /** AI-generated one-sentence insight, cached in Supabase (nullable until generated). */
+  insight:            string | null
 }
 
 export interface UserSettingsRow {

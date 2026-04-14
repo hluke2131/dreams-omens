@@ -11,7 +11,8 @@ export default function Home() {
   const router = useRouter()
   const [userInitial,  setUserInitial]  = useState<string | null>(null)
   // true until we confirm the user is an active paid subscriber
-  const [showPricing,  setShowPricing]  = useState(true)
+  const [showPricing,   setShowPricing]   = useState(true)
+  const [showHistory,   setShowHistory]   = useState(false)
 
   useEffect(() => {
     if (!hasOnboarded()) router.replace('/onboarding')
@@ -34,6 +35,13 @@ export default function Home() {
         (profile?.subscription_tier === 'basic' || profile?.subscription_tier === 'reflect_plus')
 
       if (isPaid) setShowPricing(false)
+
+      if (
+        profile?.subscription_status === 'active' &&
+        profile?.subscription_tier === 'reflect_plus'
+      ) {
+        setShowHistory(true)
+      }
     })
   }, [])
 
@@ -42,7 +50,11 @@ export default function Home() {
 
       {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-        <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
+        {showHistory ? (
+          <Link href="/history" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>History</Link>
+        ) : (
+          <Link href="/history" aria-label="History" style={{ color: 'var(--owl-brown)', fontSize: 22, textDecoration: 'none' }}>☰</Link>
+        )}
         {showPricing && (
           <Link href="/pricing" style={{ color: 'var(--cedar)', fontSize: 13, fontWeight: 700, textDecoration: 'none', letterSpacing: '0.02em' }}>Pricing</Link>
         )}

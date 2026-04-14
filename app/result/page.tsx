@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Interpretation, LensType } from '@/lib/types'
 import { getInterpretationById, saveInterpretation } from '@/lib/storage'
+import { createClient } from '@/lib/supabase/client'
 import EmailCapturePopup from '@/app/components/EmailCapturePopup'
 
 const LENSES: { label: string; value: LensType }[] = [
@@ -16,13 +17,15 @@ const LENSES: { label: string; value: LensType }[] = [
 export default function ResultPage() {
   const router = useRouter()
 
-  const [interp,      setInterp]      = useState<Interpretation | null>(null)
-  const [lensLoading, setLensLoading] = useState(false)
-  const [lensError,   setLensError]   = useState<string | null>(null)
-  const [copied,      setCopied]      = useState(false)
+  const [interp,       setInterp]       = useState<Interpretation | null>(null)
+  const [lensLoading,  setLensLoading]  = useState(false)
+  const [lensError,    setLensError]    = useState<string | null>(null)
+  const [copied,       setCopied]       = useState(false)
+  const [isReflectPlus, setIsReflectPlus] = useState(false)
+  const [conciseMode,   setConciseMode]   = useState(false)
 
-  const timerRef      = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const timedOutRef   = useRef(false)
+  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timedOutRef = useRef(false)
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get('id')
@@ -31,6 +34,39 @@ export default function ResultPage() {
     if (!found) { router.replace('/'); return }
     setInterp(found)
   }, [router])
+
+  // Check Reflect+ and concise mode
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+
+      const [profileRes, settingsRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('subscription_tier, subscription_status')
+          .eq('id', data.user.id)
+          .single(),
+        supabase
+          .from('user_settings')
+          .select('concise_answers')
+          .eq('user_id', data.user.id)
+          .single(),
+      ])
+
+      const profile = profileRes.data
+      if (
+        profile?.subscription_status === 'active' &&
+        profile?.subscription_tier === 'reflect_plus'
+      ) {
+        setIsReflectPlus(true)
+      }
+
+      if (settingsRes.data?.concise_answers) {
+        setConciseMode(true)
+      }
+    })
+  }, [])
 
   // Clear any pending timer if the page unmounts mid-request
   useEffect(() => {
@@ -60,7 +96,13 @@ export default function ResultPage() {
       const res = await fetch('/api/interpret', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ type: interp.type, text: interp.input, tags: interp.tags, lens }),
+        body:    JSON.stringify({
+          type:    interp.type,
+          text:    interp.input,
+          tags:    interp.tags,
+          lens,
+          concise: isReflectPlus && conciseMode ? true : undefined,
+        }),
       })
 
       if (timedOutRef.current) return
@@ -80,6 +122,22 @@ export default function ResultPage() {
         result: data.result,
       }
       saveInterpretation(newInterp)
+
+      // Cloud save for Reflect+ (fire-and-forget)
+      if (isReflectPlus) {
+        fetch('/api/save-interpretation', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            id,
+            type:   interp.type,
+            input:  interp.input,
+            tags:   interp.tags,
+            lens,
+            result: data.result,
+          }),
+        }).catch(() => {})
+      }
 
       router.push(`/result?id=${id}`)
     } catch (err) {
@@ -142,11 +200,11 @@ export default function ResultPage() {
           aria-label="Share"
           style={{
             background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 20,
-            color: 'var(--owl-brown)',
-            padding: 4,
+            border:     'none',
+            cursor:     'pointer',
+            fontSize:   20,
+            color:      'var(--owl-brown)',
+            padding:    4,
           }}
         >
           {copied ? '✓' : '↑'}

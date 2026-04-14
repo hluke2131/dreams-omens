@@ -9,8 +9,8 @@ import { saveInterpretation } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/client'
 import CheckoutButton from '@/app/components/CheckoutButton'
 
-const MAX_CHARS    = 1200
-const UI_TIMEOUT   = 9_000
+const MAX_CHARS  = 1200
+const UI_TIMEOUT = 9_000
 
 interface Props {
   type:        InterpretationType
@@ -24,18 +24,20 @@ interface Props {
 export default function ComposeClient({ type, title, icon, placeholder, hint, tags }: Props) {
   const router = useRouter()
 
-  const [text,             setText]            = useState('')
+  const [text,             setText]             = useState('')
   const [selectedTags,     setSelectedTags]     = useState<string[]>([])
   const [loading,          setLoading]          = useState(false)
   const [error,            setError]            = useState<string | null>(null)
   const [showGate,         setShowGate]         = useState(false)
   // null = still checking, true = paid subscriber (skip gate), false = free/logged-out
   const [isPaidSubscriber, setIsPaidSubscriber] = useState<boolean | null>(null)
+  const [isReflectPlus,    setIsReflectPlus]    = useState(false)
+  const [conciseMode,      setConciseMode]      = useState(false)
 
   const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
   const cancelledRef = useRef(false)   // true after 9s timeout fires
 
-  // Check subscription status on mount so paid subscribers never see the gate
+  // Check subscription status and concise setting on mount
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
@@ -43,15 +45,34 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
         setIsPaidSubscriber(false)
         return
       }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier, subscription_status')
-        .eq('id', data.user.id)
-        .single()
+
+      const [profileRes, settingsRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('subscription_tier, subscription_status')
+          .eq('id', data.user.id)
+          .single(),
+        supabase
+          .from('user_settings')
+          .select('concise_answers')
+          .eq('user_id', data.user.id)
+          .single(),
+      ])
+
+      const profile = profileRes.data
       const paid =
         profile?.subscription_status === 'active' &&
         (profile?.subscription_tier === 'basic' || profile?.subscription_tier === 'reflect_plus')
+
       setIsPaidSubscriber(paid)
+      setIsReflectPlus(
+        profile?.subscription_status === 'active' &&
+        profile?.subscription_tier === 'reflect_plus',
+      )
+
+      if (settingsRes.data?.concise_answers) {
+        setConciseMode(true)
+      }
     })
   }, [])
 
@@ -90,7 +111,12 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
       const res = await fetch('/api/interpret', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ type, text: text.trim(), tags: selectedTags }),
+        body:    JSON.stringify({
+          type,
+          text:    text.trim(),
+          tags:    selectedTags,
+          concise: isReflectPlus && conciseMode ? true : undefined,
+        }),
       })
 
       // If the 9s timeout already fired, silently discard this result
@@ -107,7 +133,7 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
         throw new Error(data.error ?? "We couldn't get an interpretation.")
       }
 
-      // Persist
+      // Save locally (all tiers)
       const id: string = Date.now().toString()
       const interp: Interpretation = {
         id,
@@ -120,6 +146,22 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
       }
       saveInterpretation(interp)
       incrementMonthlyUsage()
+
+      // Cloud save for Reflect+ (fire-and-forget — don't block navigation)
+      if (isReflectPlus) {
+        fetch('/api/save-interpretation', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            id,
+            type,
+            input:  text.trim(),
+            tags:   selectedTags,
+            lens:   'none',
+            result: data.result,
+          }),
+        }).catch(() => {/* silent — local save already succeeded */})
+      }
 
       router.push(`/result?id=${id}`)
     } catch (err) {
@@ -229,17 +271,17 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
           disabled={loading}
           rows={6}
           style={{
-            width: '100%',
-            padding: '14px 16px',
+            width:      '100%',
+            padding:    '14px 16px',
             borderRadius: 'var(--radius-m)',
-            border: '1px solid var(--stroke-soft)',
+            border:     '1px solid var(--stroke-soft)',
             background: 'var(--bone)',
-            color: 'var(--ink)',
-            fontSize: 16,
+            color:      'var(--ink)',
+            fontSize:   16,
             lineHeight: '22px',
-            resize: 'vertical',
+            resize:     'vertical',
             fontFamily: 'inherit',
-            boxSizing: 'border-box',
+            boxSizing:  'border-box',
           }}
         />
         <p

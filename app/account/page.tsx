@@ -236,6 +236,28 @@ function AccountContent() {
         )}
       </div>
 
+      {/* Reflect+ Guides (Reflect+ subscribers only) */}
+      {isSubscribed && tier === 'reflect_plus' && (
+        <div className="card-secondary" style={{ marginBottom: 20 }}>
+          <p className="text-helper" style={{ color: 'var(--owl-brown)', fontWeight: 600, marginBottom: 10, letterSpacing: '0.05em' }}>
+            YOUR GUIDES
+          </p>
+          <Link href="/reflect-plus" style={{ textDecoration: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p className="text-helper" style={{ color: 'var(--ink)', fontWeight: 600, marginBottom: 2 }}>
+                  Reflect+ Guides
+                </p>
+                <p className="text-caption" style={{ color: 'var(--text-secondary)' }}>
+                  Dream Symbols 101 &amp; Signs &amp; Symbols Field Guide
+                </p>
+              </div>
+              <span style={{ color: 'var(--cedar)', fontSize: 18 }}>→</span>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Sign out */}
       <button
         onClick={handleSignOut}
