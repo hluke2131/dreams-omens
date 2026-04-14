@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { InterpretationType, Interpretation } from '@/lib/types'
 import { FREE_MONTHLY_LIMIT, getMonthlyUsage, incrementMonthlyUsage } from '@/lib/types'
 import { saveInterpretation } from '@/lib/storage'
+import { createClient } from '@/lib/supabase/client'
 import CheckoutButton from '@/app/components/CheckoutButton'
 
 const MAX_CHARS    = 1200
@@ -23,14 +24,36 @@ interface Props {
 export default function ComposeClient({ type, title, icon, placeholder, hint, tags }: Props) {
   const router = useRouter()
 
-  const [text,         setText]        = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [loading,      setLoading]      = useState(false)
-  const [error,        setError]        = useState<string | null>(null)
-  const [showGate,     setShowGate]     = useState(false)
+  const [text,             setText]            = useState('')
+  const [selectedTags,     setSelectedTags]     = useState<string[]>([])
+  const [loading,          setLoading]          = useState(false)
+  const [error,            setError]            = useState<string | null>(null)
+  const [showGate,         setShowGate]         = useState(false)
+  // null = still checking, true = paid subscriber (skip gate), false = free/logged-out
+  const [isPaidSubscriber, setIsPaidSubscriber] = useState<boolean | null>(null)
 
-  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
   const cancelledRef = useRef(false)   // true after 9s timeout fires
+
+  // Check subscription status on mount so paid subscribers never see the gate
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) {
+        setIsPaidSubscriber(false)
+        return
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier, subscription_status')
+        .eq('id', data.user.id)
+        .single()
+      const paid =
+        profile?.subscription_status === 'active' &&
+        (profile?.subscription_tier === 'basic' || profile?.subscription_tier === 'reflect_plus')
+      setIsPaidSubscriber(paid)
+    })
+  }, [])
 
   function toggleTag(tag: string) {
     setSelectedTags(prev =>
@@ -41,8 +64,10 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
   async function handleSubmit() {
     if (!text.trim() || loading) return
 
-    // Free-tier gate
-    if (getMonthlyUsage() >= FREE_MONTHLY_LIMIT) {
+    // Free-tier gate — skipped entirely for confirmed paid subscribers.
+    // isPaidSubscriber === null means the Supabase check is still in flight;
+    // we give the benefit of the doubt and let the server enforce the limit.
+    if (isPaidSubscriber !== true && getMonthlyUsage() >= FREE_MONTHLY_LIMIT) {
       setShowGate(true)
       return
     }

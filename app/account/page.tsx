@@ -8,6 +8,7 @@ import CheckoutButton from '@/app/components/CheckoutButton'
 import PageFooter from '@/app/components/PageFooter'
 import type { User } from '@supabase/supabase-js'
 import type { SubscriptionTier, ProfileRow } from '@/lib/types'
+import { monthlyUsageKey } from '@/lib/types'
 
 const TIER_LABELS: Record<SubscriptionTier, string> = {
   free:         'Free',
@@ -45,6 +46,14 @@ function AccountContent() {
       setLoading(false)
     })
   }, [router])
+
+  // Clear the localStorage monthly counter when landing from a successful checkout
+  // so the compose page doesn't show a stale gate on the subscriber's next visit.
+  useEffect(() => {
+    if (checkoutParam === 'success') {
+      localStorage.removeItem(monthlyUsageKey())
+    }
+  }, [checkoutParam])
 
   async function handleManageSubscription() {
     if (portalLoading) return
