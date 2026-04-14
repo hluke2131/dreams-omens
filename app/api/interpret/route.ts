@@ -4,9 +4,8 @@
  * Server-side proxy for all OpenAI interpretation calls.
  * The OpenAI API key is NEVER exposed to the client.
  *
- * For authenticated Reflect+ users this route also enforces no rate limit.
- * For free users the client enforces the 3/month limit via localStorage;
- * this route adds a soft server-side check for authenticated users.
+ * - Free tier (logged out or subscription_tier = 'free'): 3/month cap, enforced here
+ * - Basic / Reflect+: unlimited — no cap enforced
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -42,25 +41,35 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  let isFreeTier = true // default: treat unauthenticated users as free
+
   if (user) {
-    // For authenticated users, enforce server-side monthly limit for free tier
     const { data: profile } = await supabase
       .from('profiles')
-      .select('subscription_tier, monthly_interpretation_count, monthly_count_reset_date')
+      .select('subscription_tier, subscription_status, monthly_interpretation_count, monthly_count_reset_date')
       .eq('id', user.id)
       .single()
 
-    if (profile && profile.subscription_tier === 'free') {
-      // Reset counter if we're in a new month
-      const today = new Date().toISOString().split('T')[0].substring(0, 7) // YYYY-MM
-      const resetMonth = profile.monthly_count_reset_date.substring(0, 7)
+    const isPaidActive =
+      profile?.subscription_status === 'active' &&
+      (profile?.subscription_tier === 'basic' || profile?.subscription_tier === 'reflect_plus')
 
-      let currentCount = profile.monthly_interpretation_count
+    if (isPaidActive) {
+      isFreeTier = false // paid subscribers bypass the monthly cap entirely
+    } else {
+      // Free tier — enforce monthly cap server-side
+      const today      = new Date().toISOString().substring(0, 7) // YYYY-MM
+      const resetMonth = (profile?.monthly_count_reset_date ?? '').substring(0, 7)
+
+      let currentCount = profile?.monthly_interpretation_count ?? 0
       if (today !== resetMonth) {
         currentCount = 0
         await supabase
           .from('profiles')
-          .update({ monthly_interpretation_count: 0, monthly_count_reset_date: new Date().toISOString().split('T')[0] })
+          .update({
+            monthly_interpretation_count: 0,
+            monthly_count_reset_date:     new Date().toISOString().split('T')[0],
+          })
           .eq('id', user.id)
       }
 
@@ -77,8 +86,8 @@ export async function POST(req: NextRequest) {
   try {
     const result = await getInterpretation({ type, text, tags, lens, concise })
 
-    // Increment server-side counter for authenticated users on free tier
-    if (user) {
+    // Increment server-side counter for authenticated free-tier users only
+    if (user && isFreeTier) {
       await supabase.rpc('increment_monthly_usage', { uid: user.id })
     }
 

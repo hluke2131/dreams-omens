@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
 
-export default function SignInPage() {
-  const router = useRouter()
+function SignInContent() {
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath     = searchParams.get('next') ?? '/'
 
   const [mode,     setMode]     = useState<'password' | 'magic'>('password')
   const [email,    setEmail]    = useState('')
@@ -29,7 +31,7 @@ export default function SignInPage() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/')
+      router.push(nextPath)
       router.refresh()
     }
   }
@@ -207,6 +209,18 @@ export default function SignInPage() {
       </footer>
 
     </main>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px', textAlign: 'center' }}>
+        <div className="spinner" style={{ margin: '60px auto' }} />
+      </main>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }
 

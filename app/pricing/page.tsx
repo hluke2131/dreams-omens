@@ -1,5 +1,15 @@
+/**
+ * /pricing
+ *
+ * Server component — reads auth state to show current plan or checkout CTAs.
+ * CheckoutButton is a client component imported for interactive subscribe actions.
+ */
+
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import CheckoutButton from '@/app/components/CheckoutButton'
 import PageFooter from '@/app/components/PageFooter'
+import type { SubscriptionTier } from '@/lib/types'
 
 export const metadata = { title: 'Pricing — Dreams & Omens' }
 
@@ -7,7 +17,28 @@ const FEATURES_FREE    = ['3 interpretations/month', 'Dream & omen interpretatio
 const FEATURES_BASIC   = ['Unlimited interpretations', 'Dream & omen interpretation', 'Perspective lenses on every reading', 'No monthly limit']
 const FEATURES_REFLECT = ['Everything in Basic', 'Cloud-saved history across devices', 'Symbol tracking & pattern dashboard', 'Concise answers mode', 'Subscriber-only PDF guides', 'Early access to new features']
 
-export default function PricingPage() {
+const TIER_LABELS: Record<SubscriptionTier, string> = {
+  free: 'Free', basic: 'Basic', reflect_plus: 'Reflect+',
+}
+
+export default async function PricingPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let tier: SubscriptionTier = 'free'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier, subscription_status')
+      .eq('id', user.id)
+      .single()
+    if (profile?.subscription_status === 'active') {
+      tier = (profile.subscription_tier as SubscriptionTier) ?? 'free'
+    }
+  }
+
+  const isSubscribed = tier === 'basic' || tier === 'reflect_plus'
+
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px' }}>
 
@@ -16,17 +47,36 @@ export default function PricingPage() {
         <h1 className="text-title-l" style={{ color: 'var(--ink)' }}>Pricing</h1>
       </header>
 
-      {/* Intro offer callout */}
-      <div
-        className="card-secondary"
-        style={{ textAlign: 'center', marginBottom: 24, borderColor: 'var(--sage)', borderWidth: 2 }}
-      >
-        <p className="text-title-m" style={{ color: 'var(--moss)', marginBottom: 4 }}>🎉 Limited intro offer</p>
-        <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-          Start any paid plan for <strong style={{ color: 'var(--ink)' }}>$0.99 your first month</strong>.
-          Auto-renews at regular price after 30 days. Cancel anytime.
-        </p>
-      </div>
+      {/* Current plan banner for subscribers */}
+      {isSubscribed && (
+        <div
+          className="card-secondary"
+          style={{ textAlign: 'center', marginBottom: 24, borderColor: 'var(--sage)', borderWidth: 2 }}
+        >
+          <p className="text-body" style={{ color: 'var(--moss)', fontWeight: 600, marginBottom: 4 }}>
+            You&apos;re on {TIER_LABELS[tier]}
+          </p>
+          <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>
+            <Link href="/account" style={{ color: 'var(--cedar)', fontWeight: 600 }}>
+              Manage subscription →
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {/* Intro offer callout (for non-subscribers) */}
+      {!isSubscribed && (
+        <div
+          className="card-secondary"
+          style={{ textAlign: 'center', marginBottom: 24, borderColor: 'var(--sage)', borderWidth: 2 }}
+        >
+          <p className="text-title-m" style={{ color: 'var(--moss)', marginBottom: 4 }}>Limited intro offer</p>
+          <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
+            Start any paid plan for <strong style={{ color: 'var(--ink)' }}>$0.99/month for your first 2 months</strong>.
+            Auto-renews at regular price. Cancel anytime.
+          </p>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
 
@@ -57,7 +107,7 @@ export default function PricingPage() {
             <div>
               <h2 className="text-title-m" style={{ color: 'var(--ink)' }}>Basic</h2>
               <p className="text-helper" style={{ color: 'var(--sage)', fontWeight: 600 }}>
-                $0.99 first month
+                $0.99 first 2 months
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -72,9 +122,19 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <Link href="/auth/sign-up" style={{ textDecoration: 'none' }}>
-            <button className="btn-secondary">Get Basic</button>
-          </Link>
+          {tier === 'basic' ? (
+            <p className="text-helper" style={{ color: 'var(--sage)', fontWeight: 600, textAlign: 'center' }}>
+              ✓ Current plan
+            </p>
+          ) : tier === 'reflect_plus' ? (
+            <p className="text-helper" style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>
+              Included in your Reflect+ plan
+            </p>
+          ) : (
+            <CheckoutButton priceKey="basic_monthly" returnPath="/pricing" className="btn-secondary">
+              Get Basic — $0.99 for 2 months
+            </CheckoutButton>
+          )}
         </div>
 
         {/* Reflect+ tier */}
@@ -102,7 +162,7 @@ export default function PricingPage() {
             <div>
               <h2 className="text-title-m" style={{ color: 'var(--ink)' }}>Reflect+</h2>
               <p className="text-helper" style={{ color: 'var(--sage)', fontWeight: 600 }}>
-                $0.99 first month
+                $0.99 first 2 months
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -117,16 +177,22 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <Link href="/auth/sign-up" style={{ textDecoration: 'none' }}>
-            <button className="btn-primary">Get Reflect+</button>
-          </Link>
+          {tier === 'reflect_plus' ? (
+            <p className="text-helper" style={{ color: 'var(--sage)', fontWeight: 600, textAlign: 'center' }}>
+              ✓ Current plan
+            </p>
+          ) : (
+            <CheckoutButton priceKey="reflect_plus_monthly" returnPath="/pricing" className="btn-primary">
+              Get Reflect+ — $0.99 for 2 months
+            </CheckoutButton>
+          )}
         </div>
 
       </div>
 
       {/* Fine print */}
       <p className="text-caption" style={{ color: 'var(--owl-brown)', textAlign: 'center', marginBottom: 8 }}>
-        Intro offer applies to first billing period only. Subscriptions auto-renew monthly.
+        Intro offer applies to first 2 billing months only. Subscriptions auto-renew monthly.
         Cancel anytime in Settings. No prorated refunds.
       </p>
       <p className="text-caption" style={{ color: 'var(--owl-brown)', textAlign: 'center', marginBottom: 32 }}>

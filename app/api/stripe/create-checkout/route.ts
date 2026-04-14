@@ -5,11 +5,20 @@
  * Requires the user to be authenticated.
  *
  * Body: { priceKey: 'basic_monthly' | 'reflect_plus_monthly' }
+ *
+ * Intro offer: applies a repeating coupon (2 months at $0.99) automatically
+ * when STRIPE_COUPON_INTRO_BASIC / STRIPE_COUPON_INTRO_REFLECT_PLUS are set.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, PRICE_IDS, type PriceKey } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+
+// Map from priceKey to the env var holding that plan's intro coupon ID
+const INTRO_COUPON_IDS: Record<PriceKey, string | undefined> = {
+  basic_monthly:        process.env.STRIPE_COUPON_INTRO_BASIC          || undefined,
+  reflect_plus_monthly: process.env.STRIPE_COUPON_INTRO_REFLECT_PLUS   || undefined,
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -63,13 +72,18 @@ export async function POST(req: NextRequest) {
 
   const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
+  // Apply intro coupon if configured
+  const couponId   = INTRO_COUPON_IDS[priceKey]
+  const discounts  = couponId ? [{ coupon: couponId }] : undefined
+
   const session = await stripe.checkout.sessions.create({
-    customer:   customerId,
-    mode:       'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/settings?checkout=success`,
-    cancel_url:  `${origin}/paywall?checkout=canceled`,
-    metadata: { supabase_user_id: user.id, price_key: priceKey },
+    customer:    customerId,
+    mode:        'subscription',
+    line_items:  [{ price: priceId, quantity: 1 }],
+    ...(discounts ? { discounts } : {}),
+    success_url: `${origin}/account?checkout=success`,
+    cancel_url:  `${origin}/paywall`,
+    metadata:    { supabase_user_id: user.id, price_key: priceKey },
   })
 
   return NextResponse.json({ url: session.url })
