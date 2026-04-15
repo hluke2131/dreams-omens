@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { hasOnboarded, setOnboarded } from '@/lib/storage'
 
 export default function OnboardingPage() {
@@ -30,7 +31,14 @@ export default function OnboardingPage() {
         justifyContent: 'center',
       }}
     >
-      <div style={{ fontSize: 80, marginBottom: 24 }}>🦉</div>
+      <Image
+        src="/images/Dreams_omens_logo_sm.png"
+        alt="Dreams & Omens"
+        width={200}
+        height={200}
+        priority
+        style={{ marginBottom: 24 }}
+      />
 
       <h1 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 20 }}>
         Your dreams are trying to tell you something.

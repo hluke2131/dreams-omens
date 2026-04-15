@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { hasOnboarded } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
@@ -89,10 +90,14 @@ export default function Home() {
 
       {/* Brand lockup */}
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <div style={{ fontSize: 64, marginBottom: 12 }}>🦉</div>
-        <h1 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 8 }}>
-          Dreams &amp; Omens
-        </h1>
+        <Image
+          src="/images/Dreams_omens_logo_sm.png"
+          alt="Dreams & Omens"
+          width={200}
+          height={200}
+          priority
+          style={{ margin: '0 auto 12px', display: 'block' }}
+        />
         <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
           Your dreams are specific to you. Your interpretation should be too.
         </p>
