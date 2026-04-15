@@ -17,28 +17,27 @@ export default function AboutPage() {
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
           <div style={{ fontSize: 56, marginBottom: 12 }}>🦉</div>
           <h2 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 8 }}>Dreams &amp; Omens</h2>
-          <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-            Thoughtful dream and omen interpretation. Anonymous, self-guided, and grounded.
-          </p>
         </div>
 
         <div className="card-primary">
-          <h3 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 10 }}>What we do</h3>
-          <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-            Dreams &amp; Omens helps you explore the symbols in your dreams and everyday life.
-            Enter what you experienced—a vivid dream, a strange coincidence, a recurring image—and
-            receive a warm, grounded interpretation in seconds.
+          <h3 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 12 }}>We built this because Googling dreams is broken.</h3>
+          <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '26px', marginBottom: 14 }}>
+            You wake up from something vivid — strange, emotional, hard to shake. You type a few
+            words into a search bar. You get a list. &ldquo;Dreaming about water means
+            emotions.&rdquo; Cool. Which emotions? Why now? What does <em>your</em> water dream mean?
           </p>
-        </div>
-
-        <div className="card-primary">
-          <h3 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 10 }}>Our approach</h3>
-          <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-            We blend three traditions: <strong style={{ color: 'var(--ink)' }}>psychology</strong> (Jungian archetypes,
-            cognitive science of dreaming), <strong style={{ color: 'var(--ink)' }}>pattern recognition</strong>
-            {' '}(recurring symbols and their meanings across cultures), and{' '}
-            <strong style={{ color: 'var(--ink)' }}>timeless symbolism</strong>{' '}(folklore, mythology, and
-            cross-cultural dream wisdom). There&apos;s no fortune-telling here—just thoughtful reflection.
+          <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '26px', marginBottom: 14 }}>
+            Dreams &amp; Omens was built to answer the question Google can&apos;t: what does this
+            specific dream mean for me, right now?
+          </p>
+          <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '26px', marginBottom: 14 }}>
+            We blend psychology, pattern-spotting, and timeless symbolism to give you
+            interpretations that feel personal — because they are. You describe what happened.
+            We reflect it back to you in a way that actually makes you think.
+          </p>
+          <p className="text-body" style={{ color: 'var(--ink)', fontWeight: 600, lineHeight: '26px' }}>
+            No fortune-telling. No vague platitudes. Just thoughtful reflection, personalized to
+            what you actually dreamed.
           </p>
         </div>
 

@@ -32,21 +32,18 @@ export default function OnboardingPage() {
     >
       <div style={{ fontSize: 80, marginBottom: 24 }}>🦉</div>
 
-      <h1 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 16 }}>
-        Dreams &amp; Omens
+      <h1 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 20 }}>
+        Your dreams are trying to tell you something.
       </h1>
 
-      <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 16, maxWidth: 340 }}>
-        Anonymous and self-guided. Explore the symbols in your dreams and everyday life.
-      </p>
-
-      <p className="text-helper" style={{ color: 'var(--owl-brown)', marginBottom: 48, maxWidth: 320 }}>
-        There&apos;s meaning in the magic. We blend psychology, pattern-spotting, and timeless
-        symbolism—no fortune-telling.
+      <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 48, maxWidth: 340, lineHeight: '26px' }}>
+        Most people ignore them. Or Google them and get a generic answer that feels like it was
+        written for someone else. Dreams &amp; Omens gives you something better: a real
+        interpretation of your dream, in plain language, in seconds. Ready to start noticing?
       </p>
 
       <button className="btn-primary" onClick={handleStart} style={{ maxWidth: 320, width: '100%' }}>
-        Get Started
+        Let&apos;s go
       </button>
     </main>
   )

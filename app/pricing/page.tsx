@@ -78,6 +78,18 @@ export default async function PricingPage() {
         </div>
       )}
 
+      {/* Positioning line */}
+      {!isSubscribed && (
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <p className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 6 }}>
+            Most people Google their dreams. Reflect+ users understand them.
+          </p>
+          <p className="text-helper" style={{ color: 'var(--text-secondary)' }}>
+            Start free. Upgrade when you&apos;re ready to go deeper.
+          </p>
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
 
         {/* Free tier */}

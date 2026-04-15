@@ -11,7 +11,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'How does interpretation work?',
-    a: 'When you submit a dream or omen, we analyze it using a carefully built interpretation system focused on symbolic meaning, psychological frameworks, and cultural traditions. Responses are designed to be warm and practical—never diagnostic. Your text is processed in real time and not retained on our servers once your interpretation is delivered.',
+    a: "Great question — and the honest answer is: not like a Google search. When you Google a dream symbol, you get a generic definition that was written for everyone. We work differently. You describe your specific dream — the details, the feelings, the people, the weirdness — and we craft an interpretation written just for that description. Two people can dream about the same thing and get completely different insights, because the context you provide shapes everything. It's the difference between looking up 'what does rain mean' and someone actually listening to your dream and responding thoughtfully.",
   },
   {
     q: 'How many free interpretations do I get?',

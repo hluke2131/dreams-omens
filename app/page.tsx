@@ -94,7 +94,7 @@ export default function Home() {
           Dreams &amp; Omens
         </h1>
         <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-          Anonymous and self-guided. Explore the symbols in your dreams and everyday life.
+          Your dreams are specific to you. Your interpretation should be too.
         </p>
       </div>
 
@@ -129,6 +129,21 @@ export default function Home() {
             </p>
           </div>
         </Link>
+      </div>
+
+      {/* Why we're different */}
+      <div
+        className="card-secondary"
+        style={{ marginBottom: 40 }}
+      >
+        <h2 className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 10 }}>
+          Tired of Googling what your dreams mean?
+        </h2>
+        <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '24px' }}>
+          You type &ldquo;dream about teeth falling out&rdquo; and get the same listicle everyone else gets.
+          Dreams &amp; Omens is different. Describe your dream — the details, the feelings, the weirdness —
+          and get an interpretation written just for you. Not a dictionary definition. Yours.
+        </p>
       </div>
 
       {/* Footer */}
