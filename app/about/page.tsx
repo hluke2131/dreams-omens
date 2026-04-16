@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import PageFooter from '@/app/components/PageFooter'
 
 export const metadata = { title: 'About — Dreams & Omens' }
@@ -15,8 +16,14 @@ export default function AboutPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <div style={{ fontSize: 56, marginBottom: 12 }}>🦉</div>
-          <h2 className="text-title-xl" style={{ color: 'var(--ink)', marginBottom: 8 }}>Dreams &amp; Omens</h2>
+          <Image
+            src="/images/Dreams_omens_logo_sm.png"
+            alt="Dreams & Omens"
+            width={200}
+            height={200}
+            priority
+            style={{ margin: '0 auto', display: 'block' }}
+          />
         </div>
 
         <div className="card-primary">
