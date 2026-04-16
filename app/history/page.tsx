@@ -4,7 +4,7 @@
  * History — Route: /history
  *
  * Free / Basic: local storage entries only, no pattern dashboard.
- * Reflect+: cloud entries from Supabase + pattern dashboard + CSV export.
+ * Reflect+: cloud entries from Supabase + pattern dashboard + CSV export + delete.
  */
 
 import { useEffect, useState } from 'react'
@@ -77,9 +77,40 @@ function exportCSV(items: Interpretation[]) {
   URL.revokeObjectURL(url)
 }
 
+// ── Trash icon ─────────────────────────────────────────────────────────────────
+
+function TrashIcon() {
+  return (
+    <svg
+      width="15" height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+    </svg>
+  )
+}
+
 // ── Entry component ────────────────────────────────────────────────────────────
 
-function HistoryEntry({ item }: { item: Interpretation }) {
+function HistoryEntry({
+  item,
+  isReflectPlus,
+  onDelete,
+  deleting,
+}: {
+  item:          Interpretation
+  isReflectPlus: boolean
+  onDelete:      (id: string) => void
+  deleting:      boolean
+}) {
   const [expanded, setExpanded] = useState(false)
   const typeLabel = item.type === 'dream' ? 'Dream' : 'Omen'
   const typeIcon  = item.type === 'dream' ? '🌙' : '👁'
@@ -91,75 +122,105 @@ function HistoryEntry({ item }: { item: Interpretation }) {
         borderBottom: '1px solid var(--divider)',
         paddingBottom: 16,
         marginBottom: 16,
+        opacity: deleting ? 0.4 : 1,
+        transition: 'opacity 0.2s ease',
       }}
     >
-      <button
-        onClick={() => setExpanded(e => !e)}
-        style={{
-          width:      '100%',
-          background: 'none',
-          border:     'none',
-          cursor:     'pointer',
-          textAlign:  'left',
-          padding:    0,
-          fontFamily: 'inherit',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span
-                style={{
-                  fontSize:      10,
-                  fontWeight:    700,
-                  letterSpacing: '0.05em',
-                  background:    item.type === 'dream' ? 'var(--cedar)' : 'var(--moss)',
-                  color:         'white',
-                  padding:       '2px 8px',
-                  borderRadius:  20,
-                }}
-              >
-                {typeIcon} {typeLabel.toUpperCase()}
-              </span>
-              {item.lens !== 'none' && (
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <button
+          onClick={() => setExpanded(e => !e)}
+          style={{
+            flex:       1,
+            background: 'none',
+            border:     'none',
+            cursor:     'pointer',
+            textAlign:  'left',
+            padding:    0,
+            fontFamily: 'inherit',
+            minWidth:   0,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <span
                   style={{
                     fontSize:      10,
-                    fontWeight:    600,
-                    letterSpacing: '0.04em',
-                    color:         'var(--owl-brown)',
-                    background:    'var(--sand)',
+                    fontWeight:    700,
+                    letterSpacing: '0.05em',
+                    background:    item.type === 'dream' ? 'var(--cedar)' : 'var(--moss)',
+                    color:         'white',
                     padding:       '2px 8px',
                     borderRadius:  20,
-                    border:        '1px solid var(--stroke-soft)',
                   }}
                 >
-                  {item.lens}
+                  {typeIcon} {typeLabel.toUpperCase()}
                 </span>
-              )}
+                {item.lens !== 'none' && (
+                  <span
+                    style={{
+                      fontSize:      10,
+                      fontWeight:    600,
+                      letterSpacing: '0.04em',
+                      color:         'var(--owl-brown)',
+                      background:    'var(--sand)',
+                      padding:       '2px 8px',
+                      borderRadius:  20,
+                      border:        '1px solid var(--stroke-soft)',
+                    }}
+                  >
+                    {item.lens}
+                  </span>
+                )}
+              </div>
+              <p
+                className="text-helper"
+                style={{
+                  color:        'var(--ink)',
+                  overflow:     'hidden',
+                  whiteSpace:   expanded ? 'normal' : 'nowrap',
+                  textOverflow: expanded ? 'unset' : 'ellipsis',
+                }}
+              >
+                {item.input}
+              </p>
             </div>
-            <p
-              className="text-helper"
-              style={{
-                color:      'var(--ink)',
-                overflow:   'hidden',
-                whiteSpace: expanded ? 'normal' : 'nowrap',
-                textOverflow: expanded ? 'unset' : 'ellipsis',
-              }}
-            >
-              {item.input}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <p className="text-caption" style={{ color: 'var(--owl-brown)', whiteSpace: 'nowrap' }}>
+                {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              </p>
+              <span style={{ color: 'var(--owl-brown)', fontSize: 11 }}>
+                {expanded ? '▲' : '▼'}
+              </span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <p className="text-caption" style={{ color: 'var(--owl-brown)', whiteSpace: 'nowrap' }}>
-              {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-            </p>
-            <span style={{ color: 'var(--owl-brown)', fontSize: 11 }}>
-              {expanded ? '▲' : '▼'}
-            </span>
-          </div>
-        </div>
-      </button>
+        </button>
+
+        {/* Delete button — Reflect+ only */}
+        {isReflectPlus && (
+          <button
+            onClick={() => onDelete(item.id)}
+            disabled={deleting}
+            aria-label="Delete entry"
+            style={{
+              background:  'none',
+              border:      'none',
+              cursor:      deleting ? 'default' : 'pointer',
+              padding:     '4px 6px',
+              color:       'var(--owl-brown)',
+              flexShrink:  0,
+              marginTop:   2,
+              borderRadius: 'var(--radius-s)',
+              opacity:     deleting ? 0.3 : 0.6,
+              transition:  'opacity 0.15s ease',
+            }}
+            onMouseEnter={e => { if (!deleting) (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+            onMouseLeave={e => { if (!deleting) (e.currentTarget as HTMLButtonElement).style.opacity = '0.6' }}
+          >
+            <TrashIcon />
+          </button>
+        )}
+      </div>
 
       {expanded && (
         <div style={{ marginTop: 12 }}>
@@ -169,12 +230,12 @@ function HistoryEntry({ item }: { item: Interpretation }) {
                 <span
                   key={tag}
                   style={{
-                    fontSize:   11,
-                    padding:    '2px 8px',
+                    fontSize:     11,
+                    padding:      '2px 8px',
                     borderRadius: 20,
-                    background: 'var(--sand)',
-                    color:      'var(--owl-brown)',
-                    border:     '1px solid var(--stroke-soft)',
+                    background:   'var(--sand)',
+                    color:        'var(--owl-brown)',
+                    border:       '1px solid var(--stroke-soft)',
                   }}
                 >
                   {tag}
@@ -284,15 +345,104 @@ function PatternDashboard({ symbols, entryCount }: { symbols: SymbolWithInsight[
   )
 }
 
+// ── Delete-all confirmation modal ─────────────────────────────────────────────
+
+function DeleteAllModal({
+  onConfirm,
+  onCancel,
+  deleting,
+}: {
+  onConfirm: () => void
+  onCancel:  () => void
+  deleting:  boolean
+}) {
+  return (
+    <div
+      style={{
+        position:   'fixed',
+        inset:      0,
+        background: 'rgba(29,27,22,0.5)',
+        display:    'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex:     1000,
+        padding:    '0 20px',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div
+        style={{
+          background:   'var(--bone)',
+          borderRadius: 'var(--radius-m)',
+          padding:      '28px 24px',
+          maxWidth:     360,
+          width:        '100%',
+          boxShadow:    '0 16px 40px rgba(29,27,22,0.2)',
+        }}
+      >
+        <p className="text-title-m" style={{ color: 'var(--ink)', marginBottom: 10 }}>
+          Delete all history?
+        </p>
+        <p className="text-helper" style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
+          This will permanently delete all your saved interpretations and symbols. This cannot be undone.
+        </p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            style={{
+              flex:         1,
+              padding:      '12px 0',
+              borderRadius: 'var(--radius-s)',
+              border:       '1px solid var(--stroke-soft)',
+              background:   'var(--sand)',
+              color:        'var(--ink)',
+              fontSize:     14,
+              fontWeight:   600,
+              cursor:       deleting ? 'default' : 'pointer',
+              fontFamily:   'inherit',
+              opacity:      deleting ? 0.5 : 1,
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            style={{
+              flex:         1,
+              padding:      '12px 0',
+              borderRadius: 'var(--radius-s)',
+              border:       'none',
+              background:   'var(--cedar)',
+              color:        'white',
+              fontSize:     14,
+              fontWeight:   700,
+              cursor:       deleting ? 'default' : 'pointer',
+              fontFamily:   'inherit',
+              opacity:      deleting ? 0.6 : 1,
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Delete all'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function HistoryPage() {
   const router = useRouter()
 
-  const [isReflectPlus, setIsReflectPlus] = useState(false)
-  const [loading,       setLoading]       = useState(true)
-  const [entries,       setEntries]       = useState<Interpretation[]>([])
-  const [symbols,       setSymbols]       = useState<SymbolWithInsight[]>([])
+  const [isReflectPlus,   setIsReflectPlus]   = useState(false)
+  const [loading,         setLoading]         = useState(true)
+  const [entries,         setEntries]         = useState<Interpretation[]>([])
+  const [symbols,         setSymbols]         = useState<SymbolWithInsight[]>([])
+  const [deletingId,      setDeletingId]      = useState<string | null>(null)
+  const [showDeleteAll,   setShowDeleteAll]   = useState(false)
+  const [deletingAll,     setDeletingAll]     = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -360,6 +510,45 @@ export default function HistoryPage() {
     })
   }, [router])
 
+  async function deleteEntry(id: string) {
+    if (deletingId) return
+    setDeletingId(id)
+    try {
+      const res = await fetch('/api/interpretations', {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id }),
+      })
+      if (!res.ok) throw new Error('Delete failed')
+      setEntries(prev => prev.filter(e => e.id !== id))
+      // Remove symbol insights if count drops (re-fetch symbols)
+      setSymbols(prev => prev.filter(s => s.count > 0))
+    } catch {
+      // silently ignore — entry remains in UI
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  async function deleteAll() {
+    setDeletingAll(true)
+    try {
+      const res = await fetch('/api/interpretations', {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ all: true }),
+      })
+      if (!res.ok) throw new Error('Delete all failed')
+      setEntries([])
+      setSymbols([])
+      setShowDeleteAll(false)
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingAll(false)
+    }
+  }
+
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -382,22 +571,40 @@ export default function HistoryPage() {
           <h1 className="text-title-l" style={{ color: 'var(--ink)' }}>History</h1>
         </div>
         {isReflectPlus && entries.length > 0 && (
-          <button
-            onClick={() => exportCSV(entries)}
-            style={{
-              background:   'none',
-              border:       '1px solid var(--stroke-soft)',
-              borderRadius: 'var(--radius-s)',
-              padding:      '6px 12px',
-              fontSize:     12,
-              fontWeight:   600,
-              color:        'var(--cedar)',
-              cursor:       'pointer',
-              fontFamily:   'inherit',
-            }}
-          >
-            Export CSV
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setShowDeleteAll(true)}
+              style={{
+                background:   'none',
+                border:       '1px solid var(--stroke-soft)',
+                borderRadius: 'var(--radius-s)',
+                padding:      '6px 12px',
+                fontSize:     12,
+                fontWeight:   600,
+                color:        'var(--cedar)',
+                cursor:       'pointer',
+                fontFamily:   'inherit',
+              }}
+            >
+              Delete All
+            </button>
+            <button
+              onClick={() => exportCSV(entries)}
+              style={{
+                background:   'none',
+                border:       '1px solid var(--stroke-soft)',
+                borderRadius: 'var(--radius-s)',
+                padding:      '6px 12px',
+                fontSize:     12,
+                fontWeight:   600,
+                color:        'var(--cedar)',
+                cursor:       'pointer',
+                fontFamily:   'inherit',
+              }}
+            >
+              Export CSV
+            </button>
+          </div>
         )}
       </header>
 
@@ -472,7 +679,13 @@ export default function HistoryPage() {
             {formatMonthGroup(month)}
           </p>
           {(grouped.get(month) ?? []).map(item => (
-            <HistoryEntry key={item.id} item={item} />
+            <HistoryEntry
+              key={item.id}
+              item={item}
+              isReflectPlus={isReflectPlus}
+              onDelete={deleteEntry}
+              deleting={deletingId === item.id}
+            />
           ))}
         </div>
       ))}
@@ -480,6 +693,15 @@ export default function HistoryPage() {
       <footer style={{ textAlign: 'center', marginTop: 16 }}>
         <PageFooter />
       </footer>
+
+      {/* Delete-all confirmation modal */}
+      {showDeleteAll && (
+        <DeleteAllModal
+          onConfirm={deleteAll}
+          onCancel={() => setShowDeleteAll(false)}
+          deleting={deletingAll}
+        />
+      )}
 
     </main>
   )

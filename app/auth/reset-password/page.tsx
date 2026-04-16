@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
+import PasswordInput from '@/app/components/PasswordInput'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -101,8 +102,7 @@ export default function ResetPasswordPage() {
             <label className="text-helper" style={{ display: 'block', color: 'var(--owl-brown)', marginBottom: 6, fontWeight: 600 }}>
               New password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               placeholder="At least 8 characters"

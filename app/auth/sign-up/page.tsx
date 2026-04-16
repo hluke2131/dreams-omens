@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
+import PasswordInput from '@/app/components/PasswordInput'
 
 export default function SignUpPage() {
   const [mode,     setMode]     = useState<'password' | 'magic'>('password')
@@ -143,8 +144,7 @@ export default function SignUpPage() {
             <label className="text-helper" style={{ display: 'block', color: 'var(--owl-brown)', marginBottom: 6, fontWeight: 600 }}>
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="At least 8 characters"

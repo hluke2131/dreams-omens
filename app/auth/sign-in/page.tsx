@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PageFooter from '@/app/components/PageFooter'
+import PasswordInput from '@/app/components/PasswordInput'
 
 function SignInContent() {
   const router       = useRouter()
@@ -141,8 +142,7 @@ function SignInContent() {
             <label className="text-helper" style={{ display: 'block', color: 'var(--owl-brown)', marginBottom: 6, fontWeight: 600 }}>
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Your password"
