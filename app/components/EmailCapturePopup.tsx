@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const POPUP_SEEN_KEY = 'email_popup_seen'
-const EBOOK_URL = '/placeholder-ebook.pdf' // Replace with real file path when supplied
+const EBOOK_URL = '/guides/Signs_and_Symbols_Field_Guide_v1.pdf'
 
 export default function EmailCapturePopup() {
   const [visible, setVisible]   = useState(false)
