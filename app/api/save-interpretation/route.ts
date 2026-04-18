@@ -23,18 +23,13 @@ interface SaveRequest {
 }
 
 export async function POST(req: NextRequest) {
-  console.log('[save-interpretation] Request received')
-
   // ── Auth & Reflect+ check ────────────────────────────────────────────────
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    console.warn('[save-interpretation] Rejected: no authenticated user')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-
-  console.log('[save-interpretation] Authenticated user:', user.id)
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -42,14 +37,11 @@ export async function POST(req: NextRequest) {
     .eq('id', user.id)
     .single()
 
-  console.log('[save-interpretation] Profile:', profile?.subscription_tier, profile?.subscription_status)
-
   const isReflectPlus =
     profile?.subscription_status === 'active' &&
     profile?.subscription_tier === 'reflect_plus'
 
   if (!isReflectPlus) {
-    console.warn('[save-interpretation] Rejected: not Reflect+ (tier:', profile?.subscription_tier, 'status:', profile?.subscription_status, ')')
     return NextResponse.json({ error: 'Reflect+ subscription required' }, { status: 403 })
   }
 
@@ -58,18 +50,14 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json()
   } catch {
-    console.warn('[save-interpretation] Rejected: invalid JSON body')
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const { id, type, input, tags, lens, result } = body
 
   if (!id || !type || !input || !result) {
-    console.warn('[save-interpretation] Rejected: missing fields — id:', !!id, 'type:', !!type, 'input:', !!input, 'result:', !!result)
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
-
-  console.log('[save-interpretation] Saving id:', id, 'type:', type)
 
   // ── Upsert interpretation (idempotent on re-save) ────────────────────────
   const { error: insertError } = await supabase
@@ -88,8 +76,6 @@ export async function POST(req: NextRequest) {
     console.error('[save-interpretation] Upsert error:', insertError)
     return NextResponse.json({ error: 'Failed to save interpretation' }, { status: 500 })
   }
-
-  console.log('[save-interpretation] Upsert succeeded for id:', id)
 
   // ── Symbol extraction ────────────────────────────────────────────────────
   // IMPORTANT: must be awaited before returning — Vercel terminates the
@@ -110,8 +96,6 @@ async function extractAndSaveSymbols(
   interpretationId: string,
   resultText:       string,
 ): Promise<void> {
-  console.log('[save-interpretation] Starting symbol extraction for id:', interpretationId)
-
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     console.error('[save-interpretation] Symbol extraction skipped: OPENAI_API_KEY not set')
@@ -138,7 +122,6 @@ async function extractAndSaveSymbols(
       ],
     })
     raw = response.choices[0]?.message?.content?.trim() ?? '[]'
-    console.log('[save-interpretation] OpenAI raw symbol response:', raw)
   } catch (err) {
     console.error('[save-interpretation] OpenAI symbol extraction call failed:', err)
     return
@@ -149,7 +132,7 @@ async function extractAndSaveSymbols(
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) {
-      console.warn('[save-interpretation] Symbol response was not an array:', raw)
+      console.error('[save-interpretation] Symbol response was not an array:', raw)
       return
     }
     symbols = parsed
@@ -161,19 +144,12 @@ async function extractAndSaveSymbols(
     return
   }
 
-  if (symbols.length === 0) {
-    console.warn('[save-interpretation] No usable symbols extracted from response:', raw)
-    return
-  }
-
-  console.log('[save-interpretation] Extracted symbols:', symbols)
+  if (symbols.length === 0) return
 
   // ── Upsert symbols (admin client bypasses RLS) ───────────────────────────
   const admin = createAdminClient()
 
   for (const symbol of symbols) {
-    console.log('[save-interpretation] Upserting symbol:', symbol)
-
     const { data: existing, error: selectErr } = await admin
       .from('symbols')
       .select('id, count, interpretation_ids')
@@ -189,10 +165,8 @@ async function extractAndSaveSymbols(
 
     if (existing) {
       const ids = existing.interpretation_ids ?? []
-      if (ids.includes(interpretationId)) {
-        console.log('[save-interpretation] Symbol', symbol, 'already linked to this interpretation — skipping')
-        continue
-      }
+      if (ids.includes(interpretationId)) continue
+
       const { error: updateErr } = await admin
         .from('symbols')
         .update({
@@ -203,7 +177,6 @@ async function extractAndSaveSymbols(
         .eq('id', existing.id)
 
       if (updateErr) console.error('[save-interpretation] Symbol update error for', symbol, ':', updateErr)
-      else console.log('[save-interpretation] Symbol', symbol, 'incremented to count', existing.count + 1)
     } else {
       const { error: insertErr } = await admin
         .from('symbols')
@@ -216,9 +189,6 @@ async function extractAndSaveSymbols(
         })
 
       if (insertErr) console.error('[save-interpretation] Symbol insert error for', symbol, ':', insertErr)
-      else console.log('[save-interpretation] Symbol', symbol, 'inserted with count 1')
     }
   }
-
-  console.log('[save-interpretation] Symbol extraction complete for id:', interpretationId)
 }

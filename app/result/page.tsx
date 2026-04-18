@@ -360,7 +360,6 @@ export default function ResultPage() {
 
       // Cloud save for Reflect+ (fire-and-forget)
       // keepalive: true keeps the request alive through the router.push() that follows.
-      console.log('[result] isReflectPlus:', isReflectPlus, '— attempting cloud save for lens id:', id)
       if (isReflectPlus) {
         fetch('/api/save-interpretation', {
           method:    'POST',
@@ -377,7 +376,6 @@ export default function ResultPage() {
         })
           .then(r => {
             if (!r.ok) console.error('[result] save-interpretation responded with status', r.status)
-            else console.log('[result] cloud save succeeded for lens id:', id)
           })
           .catch(err => console.error('[result] save-interpretation fetch error:', err))
       }

@@ -151,7 +151,6 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
       // Cloud save for Reflect+ (fire-and-forget — don't block navigation)
       // keepalive: true ensures the request survives the router.push() navigation
       // that follows immediately. Without it the browser can cancel the fetch.
-      console.log('[compose] isReflectPlus:', isReflectPlus, '— attempting cloud save for id:', id)
       if (isReflectPlus) {
         fetch('/api/save-interpretation', {
           method:    'POST',
@@ -168,7 +167,6 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
         })
           .then(r => {
             if (!r.ok) console.error('[compose] save-interpretation responded with status', r.status)
-            else console.log('[compose] cloud save succeeded for id:', id)
           })
           .catch(err => console.error('[compose] save-interpretation fetch error:', err))
       }

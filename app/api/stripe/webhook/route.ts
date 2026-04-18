@@ -56,8 +56,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  console.log(`[stripe/webhook] Received event: ${event.type} (${event.id})`)
-
   // Use service role client — bypasses RLS, required for webhook context
   const supabase = createAdminClient()
 
@@ -67,14 +65,6 @@ export async function POST(req: NextRequest) {
         const session  = event.data.object as Stripe.Checkout.Session
         const userId   = session.metadata?.supabase_user_id
         const priceKey = session.metadata?.price_key
-
-        console.log('[stripe/webhook] checkout.session.completed', {
-          sessionId:    session.id,
-          userId,
-          priceKey,
-          subscription: session.subscription,
-          customer:     session.customer,
-        })
 
         if (!userId) {
           console.error('[stripe/webhook] No supabase_user_id in session metadata — cannot update profile')
@@ -93,19 +83,10 @@ export async function POST(req: NextRequest) {
           break
         }
 
-        console.log('[stripe/webhook] Found profile:', existingProfile)
-
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string,
           { expand: ['items'] },
         )
-
-        console.log('[stripe/webhook] Retrieved subscription:', {
-          id:         subscription.id,
-          status:     subscription.status,
-          periodEnd:  periodEnd(subscription),
-          itemsCount: subscription.items?.data?.length,
-        })
 
         const tier = tierFromPriceKey(priceKey)
         const updatePayload = {
@@ -115,17 +96,13 @@ export async function POST(req: NextRequest) {
           subscription_period_end: periodEnd(subscription),
         }
 
-        console.log('[stripe/webhook] Updating profile with:', updatePayload)
-
-        const { error: updateError, count } = await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
           .update(updatePayload)
           .eq('id', userId)
 
         if (updateError) {
           console.error('[stripe/webhook] Supabase update error:', updateError)
-        } else {
-          console.log(`[stripe/webhook] Profile updated successfully (rows affected: ${count}), tier → ${tier}`)
         }
 
         break
@@ -134,13 +111,6 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.updated': {
         const sub    = event.data.object as Stripe.Subscription
         const userId = sub.metadata?.supabase_user_id
-
-        console.log('[stripe/webhook] customer.subscription.updated', {
-          subscriptionId: sub.id,
-          status:         sub.status,
-          userId,
-          customer:       sub.customer,
-        })
 
         if (!userId) {
           // Fall back to looking up by stripe_customer_id
@@ -165,8 +135,6 @@ export async function POST(req: NextRequest) {
 
           if (updateError) {
             console.error('[stripe/webhook] Supabase update error (by customer):', updateError)
-          } else {
-            console.log('[stripe/webhook] Profile updated (by customer lookup)')
           }
           break
         }
@@ -181,8 +149,6 @@ export async function POST(req: NextRequest) {
 
         if (updateError) {
           console.error('[stripe/webhook] Supabase update error (by userId):', updateError)
-        } else {
-          console.log('[stripe/webhook] Profile updated (by userId)')
         }
 
         break
@@ -190,11 +156,6 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription
-
-        console.log('[stripe/webhook] customer.subscription.deleted', {
-          subscriptionId: sub.id,
-          customer:       sub.customer,
-        })
 
         const { error: updateError } = await supabase
           .from('profiles')
@@ -208,15 +169,12 @@ export async function POST(req: NextRequest) {
 
         if (updateError) {
           console.error('[stripe/webhook] Supabase update error (deletion):', updateError)
-        } else {
-          console.log('[stripe/webhook] Profile downgraded to free')
         }
 
         break
       }
 
       default:
-        console.log(`[stripe/webhook] Unhandled event type: ${event.type}`)
         break
     }
   } catch (err) {

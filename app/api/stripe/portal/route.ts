@@ -67,14 +67,12 @@ export async function POST(req: NextRequest) {
 
     if (existing.data.length > 0) {
       customerId = existing.data[0].id
-      console.log('[portal] Found existing Stripe customer by email:', customerId)
     } else {
       const created = await stripe.customers.create({
         email,
         metadata: { supabase_user_id: user.id },
       })
       customerId = created.id
-      console.log('[portal] Created new Stripe customer:', customerId)
     }
 
     // Persist so future requests skip this lookup
