@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json()
+    const { email, source } = await req.json()
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'Valid email is required.' }, { status: 400 })
@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
     // Upsert so duplicate submissions are silently ignored
     const { error } = await supabase
       .from('email_leads')
-      .upsert({ email: trimmed }, { onConflict: 'email', ignoreDuplicates: true })
+      .upsert(
+        { email: trimmed, source: source ?? null },
+        { onConflict: 'email', ignoreDuplicates: true },
+      )
 
     if (error) {
       console.error('[email-leads] Supabase error:', error.message)
