@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { BlogPost, BlogCategory } from '@/lib/blog'
+import type { BlogPost, BlogCategory } from '@/lib/blog-types'
 import { createPost, updatePost, type PostFormData } from '@/app/admin/blog/actions'
 
 interface Props {

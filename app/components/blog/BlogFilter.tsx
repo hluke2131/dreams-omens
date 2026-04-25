@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { BlogPost, BlogCategory } from '@/lib/blog'
-import { estimateReadTime, formatDate } from '@/lib/blog'
+import type { BlogPost, BlogCategory } from '@/lib/blog-types'
+import { estimateReadTime, formatDate } from '@/lib/blog-types'
 
 const CATEGORIES: { value: BlogCategory | 'all'; label: string }[] = [
   { value: 'all',      label: 'All'      },
