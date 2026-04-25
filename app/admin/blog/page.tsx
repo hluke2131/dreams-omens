@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { getAllPostsForAdmin, formatDate, type BlogPost, type BlogCategory } from '@/lib/blog'
 import PageFooter from '@/app/components/PageFooter'
-import { deletePost, togglePostStatus } from './actions'
+import { togglePostStatus } from './actions'
+import DeletePostForm from './DeletePostForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -157,17 +158,7 @@ function PostRow({ post, categoryColor }: { post: BlogPost; categoryColor: strin
             </button>
           </form>
 
-          <form
-            action={deletePost}
-            onSubmit={e => {
-              if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) e.preventDefault()
-            }}
-          >
-            <input type="hidden" name="id" value={post.id} />
-            <button type="submit" style={actionBtnStyle('#dc2626')}>
-              Delete
-            </button>
-          </form>
+          <DeletePostForm postId={post.id} postTitle={post.title} />
         </div>
       </td>
     </tr>
