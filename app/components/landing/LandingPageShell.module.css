@@ -1,0 +1,25 @@
+/* Hero two-column grid — single column on mobile, side-by-side on wider screens */
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.bookCover {
+  width: 100%;
+  max-height: 220px;
+  aspect-ratio: 3 / 4;
+  order: -1; /* cover always above copy on mobile */
+}
+
+@media (min-width: 640px) {
+  .heroGrid {
+    grid-template-columns: 2fr 3fr;
+    gap: 48px;
+  }
+
+  .bookCover {
+    max-height: none;
+  }
+}
