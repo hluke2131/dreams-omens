@@ -44,6 +44,7 @@ export default function SignsAndSymbolsFieldGuidePage() {
       pdfPath="/guides/Signs_and_Symbols_Field_Guide_v1.pdf"
       ebookTitle="Signs & Symbols Field Guide"
       reflectPlusNote="P.S. The guide mentions Reflect+ (our subscription tier) a few times — that's our tool for tracking signs and patterns over time. Totally optional. The guide stands on its own."
+      coverImageSrc="/images/covers/signs-symbols-field-guide-cover.png"
       coverBgColor="linear-gradient(145deg, #7C9B6E, var(--moss))"
     />
   )

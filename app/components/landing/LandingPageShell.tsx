@@ -17,6 +17,7 @@ export interface LandingPageShellProps {
   pdfPath:              string
   ebookTitle:           string
   reflectPlusNote:      string
+  coverImageSrc?:       string  // real cover — replaces placeholder when provided
   coverBgColor?:        string
 }
 
@@ -33,6 +34,7 @@ export default function LandingPageShell({
   pdfPath,
   ebookTitle,
   reflectPlusNote,
+  coverImageSrc,
   coverBgColor = 'linear-gradient(145deg, var(--sage), var(--moss))',
 }: LandingPageShellProps) {
   return (
@@ -74,65 +76,68 @@ export default function LandingPageShell({
         >
           <div className={styles.heroGrid}>
 
-            {/* Left: eBook cover placeholder */}
-            {/* TODO: replace placeholder with real eBook cover mockup at /images/covers/[slug]-cover.png */}
-            <div
-              className={styles.bookCover}
-              style={{
-                background:    coverBgColor,
-                borderRadius:  'var(--radius-m)',
-                display:       'flex',
-                flexDirection: 'column',
-                alignItems:    'center',
-                justifyContent: 'center',
-                padding:       '24px 20px',
-                boxShadow:     '0 8px 24px rgba(29, 27, 22, 0.18), 4px 4px 0 rgba(29, 27, 22, 0.12)',
-                textAlign:     'center',
-                position:      'relative',
-                overflow:      'hidden',
-              }}
-            >
-              {/* Decorative inner border */}
+            {/* Left: eBook cover */}
+            {coverImageSrc ? (
               <div
+                className={styles.bookCover}
                 style={{
-                  position:     'absolute',
-                  inset:        '10px',
-                  border:       '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: 'calc(var(--radius-m) - 4px)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <Image
-                src="/images/Dreams_omens_logo_sm.png"
-                alt=""
-                width={48}
-                height={48}
-                style={{ opacity: 0.85, marginBottom: 16 }}
-              />
-              <p
-                style={{
-                  color:      'white',
-                  fontSize:   18,
-                  fontWeight: 700,
-                  lineHeight: '24px',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  borderRadius: 'var(--radius-m)',
+                  overflow:     'hidden',
+                  boxShadow:    '0 8px 24px rgba(29, 27, 22, 0.18), 4px 4px 0 rgba(29, 27, 22, 0.12)',
+                  position:     'relative',
                 }}
               >
-                {placeholderCoverTitle}
-              </p>
-              <p
+                <Image
+                  src={coverImageSrc}
+                  alt={placeholderCoverTitle}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(min-width: 640px) 380px, 100vw"
+                  priority
+                />
+              </div>
+            ) : (
+              /* TODO: replace placeholder with real eBook cover at /images/covers/[slug]-cover.jpg */
+              <div
+                className={styles.bookCover}
                 style={{
-                  color:     'rgba(255,255,255,0.75)',
-                  fontSize:  11,
-                  marginTop: 10,
-                  fontWeight: 500,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
+                  background:    coverBgColor,
+                  borderRadius:  'var(--radius-m)',
+                  display:       'flex',
+                  flexDirection: 'column',
+                  alignItems:    'center',
+                  justifyContent: 'center',
+                  padding:       '24px 20px',
+                  boxShadow:     '0 8px 24px rgba(29, 27, 22, 0.18), 4px 4px 0 rgba(29, 27, 22, 0.12)',
+                  textAlign:     'center',
+                  position:      'relative',
+                  overflow:      'hidden',
                 }}
               >
-                Free Guide
-              </p>
-            </div>
+                <div
+                  style={{
+                    position:     'absolute',
+                    inset:        '10px',
+                    border:       '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: 'calc(var(--radius-m) - 4px)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <Image
+                  src="/images/Dreams_omens_logo_sm.png"
+                  alt=""
+                  width={48}
+                  height={48}
+                  style={{ opacity: 0.85, marginBottom: 16 }}
+                />
+                <p style={{ color: 'white', fontSize: 18, fontWeight: 700, lineHeight: '24px', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
+                  {placeholderCoverTitle}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, marginTop: 10, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Free Guide
+                </p>
+              </div>
+            )}
 
             {/* Right: copy + form */}
             <div>
