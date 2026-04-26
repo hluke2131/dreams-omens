@@ -74,13 +74,14 @@ const CATEGORY_COLOR: Record<BlogCategory, string> = {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const [post, _] = await Promise.all([getPostBySlug(slug), Promise.resolve()])
+  const post = await getPostBySlug(slug)
   if (!post) notFound()
 
-  const related   = await getRelatedPosts(post.category, post.id)
-  const readTime  = estimateReadTime(post.body_markdown)
+  const body    = post.body_markdown ?? ''
+  const related = await getRelatedPosts(post.category, post.id)
+  const readTime  = estimateReadTime(body)
   const date      = post.published_at ? formatDate(post.published_at) : ''
-  const [firstPart, rest] = splitAtFirstParagraph(post.body_markdown)
+  const [firstPart, rest] = splitAtFirstParagraph(body)
 
   const jsonLd = {
     '@context':   'https://schema.org',
