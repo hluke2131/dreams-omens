@@ -39,6 +39,7 @@ export default function DreamSymbols101Page() {
       whoThisIsFor="If you've ever woken up at 3 a.m. from the same weird dream for the fourth time and wondered what your brain is doing in there — this is for you. No mystical hand-waving, no dream dictionaries pretending every snake means the same thing. Just a warm, grounded starting point."
       secondaryCtaHeading="Already know you want personalized dream interpretations?"
       secondaryCtaCopy="Our full tool asks about YOU first, then interprets the dream. Three free interpretations a month, no account needed."
+      coverImageSrc="/images/covers/dream-symbols-101-cover.png"
       placeholderCoverTitle="Dream Symbols 101"
       apiEndpoint="/api/landing/dream-symbols-capture"
       pdfPath="/guides/Dream_Symbols_101_v1.pdf"
