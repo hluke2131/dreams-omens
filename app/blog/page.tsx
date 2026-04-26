@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { getPublishedPosts } from '@/lib/blog'
 import BlogFilter from '@/app/components/blog/BlogFilter'
 import PageFooter from '@/app/components/PageFooter'
@@ -24,6 +25,13 @@ export default async function BlogIndexPage() {
           textAlign:   'center',
         }}
       >
+        <Image
+          src="/images/Dreams_omens_logo_sm.png"
+          alt="Dreams & Omens"
+          width={96}
+          height={96}
+          style={{ marginBottom: 24 }}
+        />
         <h1
           className="text-title-xl"
           style={{ color: 'var(--ink)', marginBottom: 12, fontSize: 32, lineHeight: '40px' }}
