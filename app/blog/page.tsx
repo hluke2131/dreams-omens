@@ -28,9 +28,9 @@ export default async function BlogIndexPage() {
         <Image
           src="/images/Dreams_omens_logo_sm.png"
           alt="Dreams & Omens"
-          width={96}
-          height={96}
-          style={{ marginBottom: 24 }}
+          width={140}
+          height={140}
+          style={{ display: 'block', margin: '0 auto 24px' }}
         />
         <h1
           className="text-title-xl"
