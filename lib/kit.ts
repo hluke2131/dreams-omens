@@ -20,8 +20,10 @@ export async function subscribeToKitForm(
     return
   }
 
+  // Step 1 — create/find the subscriber
+  let subscriberId: number
   try {
-    const res = await fetch(`${KIT_API_BASE}/forms/${formId}/subscribers`, {
+    const res1 = await fetch(`${KIT_API_BASE}/subscribers`, {
       method:  'POST',
       headers: {
         'X-Kit-Api-Key': apiKey,
@@ -30,11 +32,36 @@ export async function subscribeToKitForm(
       body: JSON.stringify({ email_address: email }),
     })
 
-    // 200 = already subscribed, 201 = newly subscribed — both are fine
-    if (res.status !== 200 && res.status !== 201) {
-      console.error(`[kit] Unexpected status ${res.status} subscribing ${email} to form ${formId}`)
+    if (res1.status !== 200 && res1.status !== 201) {
+      const body = await res1.text()
+      console.error(`[kit] Step 1 failed (status ${res1.status}) for ${email}:`, body)
+      return
+    }
+
+    const data = await res1.json() as { subscriber?: { id?: number } }
+    const id = data?.subscriber?.id
+    if (!id) {
+      console.warn('[kit] Step 1 response missing subscriber.id — skipping form add')
+      return
+    }
+    subscriberId = id
+  } catch (err) {
+    console.error('[kit] Step 1 fetch error:', err)
+    return
+  }
+
+  // Step 2 — add subscriber to the form
+  try {
+    const res2 = await fetch(`${KIT_API_BASE}/forms/${formId}/subscribers/${subscriberId}`, {
+      method:  'POST',
+      headers: { 'X-Kit-Api-Key': apiKey },
+    })
+
+    if (res2.status !== 200 && res2.status !== 201) {
+      const body = await res2.text()
+      console.error(`[kit] Step 2 failed (status ${res2.status}) adding subscriber to form ${formId}:`, body)
     }
   } catch (err) {
-    console.error(`[kit] Fetch error subscribing to form ${formId}:`, err)
+    console.error(`[kit] Step 2 fetch error adding subscriber to form ${formId}:`, err)
   }
 }
