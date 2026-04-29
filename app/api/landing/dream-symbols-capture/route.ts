@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { subscribeToKitForm } from '@/lib/kit'
 
-const SOURCE = 'landing_dream_symbols_101'
+const SOURCE  = 'landing_dream_symbols_101'
+const KIT_FORM = 9381629
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +27,8 @@ export async function POST(req: NextRequest) {
       )
 
     if (error) console.error('[dream-symbols-capture] Supabase error:', error.message)
+
+    await subscribeToKitForm(trimmed, KIT_FORM)
 
     return NextResponse.json({ ok: true })
   } catch (err) {

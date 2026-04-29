@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { subscribeToKitForm } from '@/lib/kit'
+
+// Map blog CTA source values to Kit form IDs.
+// Only sources in this map trigger a Kit subscription — other sources
+// (e.g. future non-lead-magnet captures) are intentionally excluded.
+const KIT_FORM_BY_SOURCE: Record<string, number> = {
+  blog_dream_cta: 9381629,
+  blog_omen_cta:  9381636,
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +37,12 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error('[email-leads] Supabase error:', error.message)
       // Don't leak DB errors to client — just succeed silently
+    }
+
+    // Push to Kit only for known lead-magnet sources
+    const kitFormId = typeof source === 'string' ? KIT_FORM_BY_SOURCE[source] : undefined
+    if (kitFormId) {
+      await subscribeToKitForm(trimmed, kitFormId)
     }
 
     return NextResponse.json({ ok: true })
