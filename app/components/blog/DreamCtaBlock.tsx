@@ -18,9 +18,9 @@ export default function DreamCtaBlock() {
       <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '26px', marginBottom: 20 }}>
         Dream dictionaries give you generic answers. We ask about you first, then interpret.
       </p>
-      <Link href="/compose/dream" style={{ textDecoration: 'none' }}>
+      <Link href="/" style={{ textDecoration: 'none' }}>
         <button className="btn-primary" style={{ maxWidth: 280, marginBottom: 16 }}>
-          Interpret my dream →
+          Try it now →
         </button>
       </Link>
       <div>

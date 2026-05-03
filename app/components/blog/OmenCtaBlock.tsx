@@ -18,9 +18,9 @@ export default function OmenCtaBlock() {
       <p className="text-body" style={{ color: 'var(--text-secondary)', lineHeight: '26px', marginBottom: 20 }}>
         Generic interpretations miss the context that makes a sign meaningful. We ask about yours first.
       </p>
-      <Link href="/compose/omen" style={{ textDecoration: 'none' }}>
+      <Link href="/" style={{ textDecoration: 'none' }}>
         <button className="btn-primary" style={{ maxWidth: 280, marginBottom: 16 }}>
-          Interpret my omen →
+          Try it now →
         </button>
       </Link>
       <div>
