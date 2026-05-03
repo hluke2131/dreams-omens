@@ -27,13 +27,12 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   return (data as BlogPost) ?? null
 }
 
-export async function getRelatedPosts(category: BlogCategory, currentId: string): Promise<BlogPost[]> {
+export async function getRelatedPosts(currentId: string): Promise<BlogPost[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('status', 'published')
-    .eq('category', category)
     .neq('id', currentId)
     .order('published_at', { ascending: false })
     .limit(3)

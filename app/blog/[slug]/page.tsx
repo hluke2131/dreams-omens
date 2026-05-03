@@ -78,7 +78,7 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound()
 
   const body    = post.body_markdown ?? ''
-  const related = await getRelatedPosts(post.category, post.id)
+  const related = await getRelatedPosts(post.id)
   const readTime  = estimateReadTime(body)
   const date      = post.published_at ? formatDate(post.published_at) : ''
   const [firstPart, rest] = splitAtFirstParagraph(body)
@@ -192,7 +192,7 @@ export default async function BlogPostPage({ params }: Props) {
               className="text-title-m"
               style={{ color: 'var(--ink)', marginBottom: 20, borderTop: '1px solid var(--divider)', paddingTop: 32 }}
             >
-              More from {CATEGORY_LABEL[post.category]}
+              You might also enjoy
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {related.map(r => (
