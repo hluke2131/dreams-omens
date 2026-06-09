@@ -50,40 +50,18 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
 
   return (
     <div>
-      {/* Search input (constrained width, alone on its row) */}
-      <div style={{ marginBottom: 12, maxWidth: '28rem' }}>
-        <input
-          type="search"
-          value={query}
-          onChange={handleQueryChange}
-          placeholder="Search posts…"
-          aria-label="Search blog posts"
-          style={{
-            width:        '100%',
-            padding:      '10px 16px',
-            borderRadius: 'var(--radius-m)',
-            border:       '1px solid var(--stroke-soft)',
-            background:   'var(--bone)',
-            color:        'var(--ink)',
-            fontSize:     15,
-            fontFamily:   'inherit',
-            outline:      'none',
-            boxSizing:    'border-box',
-          }}
-        />
-      </div>
-
-      {/* Category filter tabs + Search button on the same row */}
+      {/* Single row: category tabs left, input+button pair right */}
       <div
         style={{
           display:        'flex',
-          gap:            8,
+          gap:            12,
           marginBottom:   32,
           flexWrap:       'wrap',
           alignItems:     'center',
           justifyContent: 'space-between',
         }}
       >
+        {/* Category tabs */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {CATEGORIES.map(({ value, label }) => (
             <button
@@ -106,24 +84,47 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => (document.querySelector('input[type="search"]') as HTMLInputElement | null)?.blur()}
-          style={{
-            padding:      '8px 20px',
-            borderRadius: 'var(--radius-m)',
-            border:       'none',
-            background:   'var(--cedar)',
-            color:        'white',
-            fontWeight:   700,
-            fontSize:     14,
-            fontFamily:   'inherit',
-            cursor:       'pointer',
-            flexShrink:   0,
-          }}
-        >
-          Search
-        </button>
+
+        {/* Search input + button — always stay together as a unit */}
+        <div style={{ display: 'flex', gap: 0, flexShrink: 0 }}>
+          <input
+            type="search"
+            value={query}
+            onChange={handleQueryChange}
+            placeholder="Search posts…"
+            aria-label="Search blog posts"
+            style={{
+              width:              '16rem',
+              padding:            '8px 14px',
+              borderRadius:       'var(--radius-m) 0 0 var(--radius-m)',
+              border:             '1px solid var(--stroke-soft)',
+              borderRight:        'none',
+              background:         'var(--bone)',
+              color:              'var(--ink)',
+              fontSize:           14,
+              fontFamily:         'inherit',
+              outline:            'none',
+            }}
+          />
+          <button
+            type="button"
+            onClick={e => (e.currentTarget.previousElementSibling as HTMLInputElement | null)?.blur()}
+            style={{
+              padding:            '8px 18px',
+              borderRadius:       '0 var(--radius-m) var(--radius-m) 0',
+              border:             '1px solid var(--cedar)',
+              background:         'var(--cedar)',
+              color:              'white',
+              fontWeight:         700,
+              fontSize:           14,
+              fontFamily:         'inherit',
+              cursor:             'pointer',
+              flexShrink:         0,
+            }}
+          >
+            Search
+          </button>
+        </div>
       </div>
 
       {/* Post grid */}
