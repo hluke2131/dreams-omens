@@ -50,27 +50,46 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
 
   return (
     <div>
-      {/* Search input */}
-      <input
-        type="search"
-        value={query}
-        onChange={handleQueryChange}
-        placeholder="Search posts…"
-        aria-label="Search blog posts"
-        style={{
-          width:        '100%',
-          padding:      '10px 16px',
-          marginBottom: 20,
-          borderRadius: 'var(--radius-m)',
-          border:       '1px solid var(--stroke-soft)',
-          background:   'var(--bone)',
-          color:        'var(--ink)',
-          fontSize:     15,
-          fontFamily:   'inherit',
-          outline:      'none',
-          boxSizing:    'border-box',
-        }}
-      />
+      {/* Search input + button */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, maxWidth: '28rem' }}>
+        <input
+          type="search"
+          value={query}
+          onChange={handleQueryChange}
+          placeholder="Search posts…"
+          aria-label="Search blog posts"
+          style={{
+            flex:         1,
+            padding:      '10px 16px',
+            borderRadius: 'var(--radius-m)',
+            border:       '1px solid var(--stroke-soft)',
+            background:   'var(--bone)',
+            color:        'var(--ink)',
+            fontSize:     15,
+            fontFamily:   'inherit',
+            outline:      'none',
+            minWidth:     0,
+          }}
+        />
+        <button
+          type="button"
+          onClick={e => (e.currentTarget.previousElementSibling as HTMLInputElement | null)?.blur()}
+          style={{
+            padding:      '10px 20px',
+            borderRadius: 'var(--radius-m)',
+            border:       'none',
+            background:   'var(--cedar)',
+            color:        'white',
+            fontWeight:   700,
+            fontSize:     14,
+            fontFamily:   'inherit',
+            cursor:       'pointer',
+            flexShrink:   0,
+          }}
+        >
+          Search
+        </button>
+      </div>
 
       {/* Category filter tabs */}
       <div
