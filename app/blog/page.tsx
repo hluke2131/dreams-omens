@@ -1,28 +1,35 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getPublishedPosts } from '@/lib/blog'
+import { getPublishedPosts, getPublishedPostCount, POSTS_PER_PAGE } from '@/lib/blog'
 import BlogFilter from '@/app/components/blog/BlogFilter'
 import PageFooter from '@/app/components/PageFooter'
 
 export const revalidate = 60
 
-export const metadata = {
-  title:       'Dream & Omen Interpretations | Dreams & Omens',
-  description: 'Explore dream symbols, animal omens, and practical guidance for understanding what your subconscious and the world around you might be saying.',
+export async function generateMetadata() {
+  const total      = await getPublishedPostCount()
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE)
+
+  return {
+    title:       'Dream & Omen Interpretations | Dreams & Omens',
+    description: 'Explore dream symbols, animal omens, and practical guidance for understanding what your subconscious and the world around you might be saying.',
+    alternates:  totalPages > 1 ? { canonical: '/blog', next: '/blog/page/2' } : { canonical: '/blog' },
+  }
 }
 
 export default async function BlogIndexPage() {
-  const posts = await getPublishedPosts()
+  const [posts, total] = await Promise.all([getPublishedPosts(), getPublishedPostCount()])
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE)
 
   return (
     <main>
       {/* Hero */}
       <section
         style={{
-          maxWidth:    960,
-          margin:      '0 auto',
-          padding:     '56px 20px 40px',
-          textAlign:   'center',
+          maxWidth:  960,
+          margin:    '0 auto',
+          padding:   '56px 20px 40px',
+          textAlign: 'center',
         }}
       >
         <Image
@@ -55,7 +62,7 @@ export default async function BlogIndexPage() {
         </Link>
       </section>
 
-      {/* Post grid with filter */}
+      {/* Post grid with filter + search + load-more */}
       <section
         style={{
           maxWidth: 960,
@@ -65,6 +72,34 @@ export default async function BlogIndexPage() {
       >
         <BlogFilter posts={posts} />
       </section>
+
+      {/* Crawler-visible pagination links */}
+      {totalPages > 1 && (
+        <nav
+          aria-label="Blog pages"
+          style={{ textAlign: 'center', padding: '0 20px 32px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}
+        >
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <Link
+              key={page}
+              href={page === 1 ? '/blog' : `/blog/page/${page}`}
+              aria-label={`Page ${page}`}
+              style={{
+                padding:      '6px 14px',
+                borderRadius: 'var(--radius-s)',
+                border:       '1px solid var(--stroke-soft)',
+                color:        page === 1 ? 'white' : 'var(--owl-brown)',
+                background:   page === 1 ? 'var(--cedar)' : 'var(--bone)',
+                fontSize:     13,
+                fontWeight:   page === 1 ? 700 : 500,
+                textDecoration: 'none',
+              }}
+            >
+              {page}
+            </Link>
+          ))}
+        </nav>
+      )}
 
       <footer style={{ textAlign: 'center', padding: '0 20px 40px' }}>
         <PageFooter />
