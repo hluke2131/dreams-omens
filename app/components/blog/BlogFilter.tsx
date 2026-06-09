@@ -50,8 +50,8 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
 
   return (
     <div>
-      {/* Search input + button */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, maxWidth: '28rem' }}>
+      {/* Search input (constrained width, alone on its row) */}
+      <div style={{ marginBottom: 12, maxWidth: '28rem' }}>
         <input
           type="search"
           value={query}
@@ -59,7 +59,7 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
           placeholder="Search posts…"
           aria-label="Search blog posts"
           style={{
-            flex:         1,
+            width:        '100%',
             padding:      '10px 16px',
             borderRadius: 'var(--radius-m)',
             border:       '1px solid var(--stroke-soft)',
@@ -68,14 +68,49 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
             fontSize:     15,
             fontFamily:   'inherit',
             outline:      'none',
-            minWidth:     0,
+            boxSizing:    'border-box',
           }}
         />
+      </div>
+
+      {/* Category filter tabs + Search button on the same row */}
+      <div
+        style={{
+          display:        'flex',
+          gap:            8,
+          marginBottom:   32,
+          flexWrap:       'wrap',
+          alignItems:     'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {CATEGORIES.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleCategoryChange(value)}
+              style={{
+                padding:      '8px 18px',
+                borderRadius: 'var(--radius-m)',
+                border:       '1px solid var(--stroke-soft)',
+                background:   active === value ? 'var(--cedar)' : 'var(--bone)',
+                color:        active === value ? 'white' : 'var(--owl-brown)',
+                fontWeight:   active === value ? 700 : 500,
+                fontSize:     14,
+                cursor:       'pointer',
+                fontFamily:   'inherit',
+                transition:   'background 0.15s ease, color 0.15s ease',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
-          onClick={e => (e.currentTarget.previousElementSibling as HTMLInputElement | null)?.blur()}
+          onClick={() => (document.querySelector('input[type="search"]') as HTMLInputElement | null)?.blur()}
           style={{
-            padding:      '10px 20px',
+            padding:      '8px 20px',
             borderRadius: 'var(--radius-m)',
             border:       'none',
             background:   'var(--cedar)',
@@ -89,37 +124,6 @@ export default function BlogFilter({ posts }: { posts: BlogPost[] }) {
         >
           Search
         </button>
-      </div>
-
-      {/* Category filter tabs */}
-      <div
-        style={{
-          display:      'flex',
-          gap:          8,
-          marginBottom: 32,
-          flexWrap:     'wrap',
-        }}
-      >
-        {CATEGORIES.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => handleCategoryChange(value)}
-            style={{
-              padding:      '8px 18px',
-              borderRadius: 'var(--radius-m)',
-              border:       '1px solid var(--stroke-soft)',
-              background:   active === value ? 'var(--cedar)' : 'var(--bone)',
-              color:        active === value ? 'white' : 'var(--owl-brown)',
-              fontWeight:   active === value ? 700 : 500,
-              fontSize:     14,
-              cursor:       'pointer',
-              fontFamily:   'inherit',
-              transition:   'background 0.15s ease, color 0.15s ease',
-            }}
-          >
-            {label}
-          </button>
-        ))}
       </div>
 
       {/* Post grid */}
