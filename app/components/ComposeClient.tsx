@@ -171,6 +171,10 @@ export default function ComposeClient({ type, title, icon, placeholder, hint, ta
           .catch(err => console.error('[compose] save-interpretation fetch error:', err))
       }
 
+      window.gtag?.('event', 'interpretation_submitted', {
+        interpretation_type: type,
+      })
+
       router.push(`/result?id=${id}`)
     } catch (err) {
       if (cancelledRef.current) return
