@@ -10,7 +10,12 @@ import { estimateReadTime, formatDate } from '@/lib/blog-types'
 import type { BlogPost, BlogCategory } from '@/lib/blog-types'
 import PageFooter from '@/app/components/PageFooter'
 
-export const revalidate = 60
+// Allow paths not pre-generated at build time to render on-demand.
+// Do NOT add revalidate here — combining revalidate (ISR) with
+// generateStaticParams requires either force-static or an empty param
+// list, neither of which fits this use-case. On-demand rendering for
+// new pages (e.g. page/2 appearing after the 10th post) is correct.
+export const dynamicParams = true
 
 const CATEGORY_COLORS: Record<BlogCategory, string> = {
   dream:    'var(--cedar)',

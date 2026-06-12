@@ -77,25 +77,29 @@ export default async function BlogIndexPage() {
       {totalPages > 1 && (
         <nav
           aria-label="Blog pages"
-          style={{ textAlign: 'center', padding: '0 20px 32px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}
+          style={{ textAlign: 'center', padding: '0 20px 40px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
         >
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginRight: 4 }}>
+            More posts:
+          </span>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <Link
               key={page}
               href={page === 1 ? '/blog' : `/blog/page/${page}`}
               aria-label={`Page ${page}`}
+              aria-current={page === 1 ? 'page' : undefined}
               style={{
-                padding:      '6px 14px',
-                borderRadius: 'var(--radius-s)',
-                border:       '1px solid var(--stroke-soft)',
-                color:        page === 1 ? 'white' : 'var(--owl-brown)',
-                background:   page === 1 ? 'var(--cedar)' : 'var(--bone)',
-                fontSize:     13,
-                fontWeight:   page === 1 ? 700 : 500,
+                padding:        '6px 14px',
+                borderRadius:   'var(--radius-s)',
+                border:         '1px solid var(--stroke-soft)',
+                color:          page === 1 ? 'white' : 'var(--owl-brown)',
+                background:     page === 1 ? 'var(--cedar)' : 'var(--bone)',
+                fontSize:       13,
+                fontWeight:     page === 1 ? 700 : 500,
                 textDecoration: 'none',
               }}
             >
-              {page}
+              Page {page}
             </Link>
           ))}
         </nav>
